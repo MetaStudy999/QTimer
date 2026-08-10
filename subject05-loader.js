@@ -11,3 +11,4 @@ document.write('<script src="./subject05-ch02-25-35.js"><\/script>');
 document.write('<script src="./subject05-ch02-36-41.js"><\/script>');
 document.write('<script src="./subject05-ch03-01-03.js"><\/script>');
 document.write('<script src="./subject05-ch03-04-16.js"><\/script>');
+document.write('<script src="./subject05-ch03-17-24.js"><\/script>');
