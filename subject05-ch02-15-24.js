@@ -1,0 +1,15 @@
+// Subject 5 / Chapter 02 IT 프로젝트 정보시스템 구축관리 15~24
+const S05C02C=(n,p,t,c,a,k,img)=>({id:`sujebi-2026-system-mgmt-ch02-${String(n).padStart(2,'0')}`,sourceQuestionNo:n,sourcePage:p,questionType:"single_choice",questionText:t,choices:c,sourceAnswer:a,aiDetectedAnswer:a,aiReasonedAnswer:a,sourceExplanation:k,finalKey:k,sourceImageUrl:img,verificationStatus:"auto_matched"});
+const SUBJECT05_CH02_15_24=[
+S05C02C(15,"5-26","모든 노드가 서로 직접 연결되는 그물 모양으로 대용량을 빠르고 안전하게 전달하며 한 노드 장애가 다른 네트워크에 영향을 주지 않는 구조는?",["메시(Mesh)형 구조","링(Ring)형 구조","트리(Tree)형 구조","버스(Bus)형 구조"],1,"모든 노드가 상호 직접 연결되는 구조는 Mesh형이다.","https://drive.google.com/file/d/1-gBrgZQlkMg45lB4xspMKgHViZ8UzPQT/view"),
+S05C02C(16,"5-26","웹에서 제공하는 정보와 서비스를 이용하여 새로운 소프트웨어·서비스·데이터베이스 등을 만드는 기술은?",["Quantum Key Distribution","Digital Rights Management","Grayware","Mashup"],4,"Mashup은 서로 다른 웹의 정보·서비스를 결합해 새로운 서비스나 애플리케이션을 만드는 기술이다.","https://drive.google.com/file/d/1-gBrgZQlkMg45lB4xspMKgHViZ8UzPQT/view"),
+S05C02C(17,"5-26","물리적 사물과 컴퓨터에 동일하게 표현되는 가상 모델로 실제 자산의 특성을 정밀하게 모델링하여 최적화·사고 최소화·생산성 향상에 활용하는 것은?",["최적화","실행 시간","디지털 트윈","N-Screen"],3,"Digital Twin은 물리적 대상과 대응하는 가상 모델을 만들어 상태·성능을 분석하고 최적화한다.","https://drive.google.com/file/d/1-gBrgZQlkMg45lB4xspMKgHViZ8UzPQT/view"),
+S05C02C(18,"5-27","서비스 지향 아키텍처(SOA) 기반 애플리케이션을 구성하는 층이 아닌 것은?",["표현 층","프로세스 층","제어 클래스 층","비즈니스 층"],3,"SOA의 대표 계층은 표현·프로세스·비즈니스 계층이며 제어 클래스 층은 해당하지 않는다.","https://drive.google.com/file/d/1ZtQHTbUvXjXvxPRfvMIat5DZPn1QjPdK/view"),
+S05C02C(19,"5-27","블록체인 개발 환경을 클라우드로 서비스하며 노드 추가·제거가 쉽고 블록체인 인프라를 추상화해 응용 프로그램을 개발할 수 있게 하는 플랫폼은?",["OTT","BaaS","SDDC","Wi-SUN"],2,"BaaS(Blockchain as a Service)는 블록체인 개발·운영 환경을 클라우드 서비스 형태로 제공한다.","https://drive.google.com/file/d/1ZtQHTbUvXjXvxPRfvMIat5DZPn1QjPdK/view"),
+S05C02C(20,"5-27","구글 브레인 팀이 제작하여 공개한 기계학습을 위한 오픈소스 소프트웨어 라이브러리는?",["Tajo","One Seg","Foursquare","TensorFlow"],4,"TensorFlow는 Google이 공개한 대표적인 오픈소스 머신러닝 라이브러리이다.","https://drive.google.com/file/d/1ZtQHTbUvXjXvxPRfvMIat5DZPn1QjPdK/view"),
+S05C02C(21,"5-28","국내 IT 서비스 경쟁력 강화를 목표로 개발되었고 인프라 제어·관리, 실행, 개발, 서비스, 운영 환경으로 구성된 개방형 클라우드 컴퓨팅 플랫폼은?",["N2OS","PaaS-TA","KAWS","Metaverse"],2,"PaaS-TA는 국내에서 개발된 개방형 클라우드 플랫폼이다.","https://drive.google.com/file/d/1fy-htlMT0nQRzGRloCsoeZncbq32ldnH/view"),
+S05C02C(22,"5-28","기계 스스로 패턴과 추론을 거쳐 작업을 할 수 있는 알고리즘 및 통계 모델과 관련한 연구 분야는?",["NLP","CNN","ML(Machine Learning)","RNN"],3,"Machine Learning은 데이터에서 패턴을 학습해 예측·판단·작업을 수행하는 알고리즘과 모델을 연구한다.","https://drive.google.com/file/d/1fy-htlMT0nQRzGRloCsoeZncbq32ldnH/view"),
+S05C02C(23,"5-28","서비스라고 정의되는 분할된 애플리케이션 조각들을 느슨하게 결합해 완성된 애플리케이션을 구현하기 위한 구조는?",["CPS","Digital Twin","서비스 지향 아키텍처(SOA)","Expert System"],3,"SOA는 독립적인 서비스들을 느슨하게 결합하여 애플리케이션을 구성하는 아키텍처이다.","https://drive.google.com/file/d/1fy-htlMT0nQRzGRloCsoeZncbq32ldnH/view"),
+S05C02C(24,"5-28","클라우드를 통해 GPU 자원을 필요할 때 유연하게 빌려 사용하고 직접 고가 GPU 하드웨어를 구매·유지하지 않아도 되는 서비스는?",["GPUaaS","BaaS","SDDC","TensorFlow"],1,"GPUaaS(GPU as a Service)는 GPU 컴퓨팅 자원을 클라우드 서비스 형태로 제공한다.","https://drive.google.com/file/d/1fy-htlMT0nQRzGRloCsoeZncbq32ldnH/view")
+];
+const s05c02cKnown=new Set(QUESTIONS.map(q=>q.id));QUESTIONS.push(...SUBJECT05_CH02_15_24.filter(q=>!s05c02cKnown.has(q.id)));
