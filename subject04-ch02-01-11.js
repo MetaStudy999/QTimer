@@ -10,7 +10,7 @@ S04C02(6,"4-7","C언어에서 변수로 사용할 수 없는 것은?",["data02",
 S04C02(7,"4-7","C언어에서 변수 선언으로 틀린 것은?",["int else;","int Test2;","int pc;","int True;"],1,"else는 C 예약어이므로 식별자로 사용할 수 없다.","https://drive.google.com/file/d/1lIQ3hrGH2VSf-7WR4blYAKzDH3QgEE4y/view"),
 S04C02(8,"4-7","C언어에서 비트 논리 연산자에 해당하지 않는 것은?",["^","?","&","~"],2,"비트 연산자에는 &, |, ^, ~ 등이 있으며 ?는 조건 연산자의 일부이다.","https://drive.google.com/file/d/1lIQ3hrGH2VSf-7WR4blYAKzDH3QgEE4y/view"),
 S04C02(9,"4-8","다음 C 프로그램의 실행 결과는?\n`int a[2][2]={{11,22},{44,55}}; int i,sum=0; int *p; p=a[0]; for(i=1;i<4;i++) sum += *(p+i); printf("%d",sum);`",["55","77","121","132"],3,"p가 a[0][0]을 가리키고 i=1~3에서 22+44+55=121을 더한다.","https://drive.google.com/file/d/12PjHUYTbVGpP3go0iVRxO3U0on3159oS/view"),
-S04C02(10,"4-8","C언어에서 산술 연산자가 아닌 것은?",["%","*","/","="],4,"=는 대입 연산자이고 %, *, /는 산술 연산자이다.","https://drive.google.com/file/d/12PjHUYTbVGp3go0iVRxO3U0on3159oS/view"),
+S04C02(10,"4-8","C언어에서 산술 연산자가 아닌 것은?",["%","*","/","="],4,"=는 대입 연산자이고 %, *, /는 산술 연산자이다.","https://drive.google.com/file/d/12PjHUYTbVGpP3go0iVRxO3U0on3159oS/view"),
 S04C02(11,"4-8","다음 C 프로그램의 실행 결과는? `char a; a='A'+1; printf("%d",a);`",["1","11","66","98"],3,"문자 'A'의 ASCII 코드 65에 1을 더하면 66이다.","https://drive.google.com/file/d/12PjHUYTbVGpP3go0iVRxO3U0on3159oS/view")
 ];
 const s04c02Known=new Set(QUESTIONS.map(q=>q.id));QUESTIONS.push(...SUBJECT04_CH02_01_11.filter(q=>!s04c02Known.has(q.id)));
