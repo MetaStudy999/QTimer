@@ -91,26 +91,30 @@
 
   function installDataButtons(){
     if (document.querySelector("#qtimerExportBtn")) return;
-    const host = document.querySelector(".control-bar");
+    const host = document.querySelector(".header-right") || document.querySelector(".control-bar");
     if (!host) return;
+
+    const group = document.createElement("div");
+    group.className = "view-tabs qtimer-data-tools";
+    group.setAttribute("aria-label","학습 데이터 백업 및 복원");
 
     const exportBtn = document.createElement("button");
     exportBtn.id = "qtimerExportBtn";
     exportBtn.type = "button";
-    exportBtn.textContent = "학습데이터 백업";
+    exportBtn.textContent = "백업";
     exportBtn.title = "현재 풀이·취약·정답검증 기록을 JSON 파일로 저장";
     exportBtn.addEventListener("click", exportLearningData);
 
     const importBtn = document.createElement("button");
     importBtn.id = "qtimerImportBtn";
     importBtn.type = "button";
-    importBtn.textContent = "학습데이터 복원";
+    importBtn.textContent = "복원";
     importBtn.title = "Vercel 또는 다른 PC에서 내보낸 QTimer JSON 백업 복원";
 
     const undoImportBtn = document.createElement("button");
     undoImportBtn.id = "qtimerUndoImportBtn";
     undoImportBtn.type = "button";
-    undoImportBtn.textContent = "복원 전 상태";
+    undoImportBtn.textContent = "복원취소";
     undoImportBtn.title = "가장 최근 가져오기 직전 브라우저 상태로 되돌리기";
     undoImportBtn.addEventListener("click", restorePreImportSnapshot);
 
@@ -127,7 +131,10 @@
     });
     importBtn.addEventListener("click", ()=>input.click());
 
-    host.append(exportBtn, importBtn, undoImportBtn, input);
+    group.append(exportBtn, importBtn, undoImportBtn, input);
+    const metrics = host.querySelector(".header-metrics");
+    if (metrics) host.insertBefore(group, metrics);
+    else host.appendChild(group);
   }
 
   installDataButtons();
