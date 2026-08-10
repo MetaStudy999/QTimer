@@ -8,3 +8,5 @@ document.write('<script src="./subject05-ch02-01-03.js"><\/script>');
 document.write('<script src="./subject05-ch02-04-14.js"><\/script>');
 document.write('<script src="./subject05-ch02-15-24.js"><\/script>');
 document.write('<script src="./subject05-ch02-25-35.js"><\/script>');
+document.write('<script src="./subject05-ch02-36-41.js"><\/script>');
+document.write('<script src="./subject05-ch03-01-03.js"><\/script>');
