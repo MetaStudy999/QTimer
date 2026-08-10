@@ -7,3 +7,4 @@ document.write('<script src="./subject05-ch01-56-58.js"><\/script>');
 document.write('<script src="./subject05-ch02-01-03.js"><\/script>');
 document.write('<script src="./subject05-ch02-04-14.js"><\/script>');
 document.write('<script src="./subject05-ch02-15-24.js"><\/script>');
+document.write('<script src="./subject05-ch02-25-35.js"><\/script>');
