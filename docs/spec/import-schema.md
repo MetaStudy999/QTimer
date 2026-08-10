@@ -26,9 +26,18 @@ Drive 사진 → AI Vision/OCR → QTimer 사이의 공통 교환 형식이다.
 }
 ```
 
+## 수제비 2026 이미지 판독 규칙
+
+- 문제 본문과 선택지는 이미지 상단·중앙의 문제 영역에서 추출한다.
+- **정답은 각 촬영 이미지 하단의 `정답` 영역을 우선 판독한다.**
+- 하단 정답은 같은 페이지의 `source_question_no`와 1:1로 매칭한다.
+- 문제 옆 해설은 정답 근거와 `source_explanation` 요약에 활용한다.
+- 하단 정답이 잘리거나 흐리거나 문제번호와 매칭되지 않으면 자동 확정하지 않고 `needs_review`로 보낸다.
+- 하단 정답, AI 이미지 인식, AI 독립 풀이가 모두 일치하면 `auto_matched` 후보로 처리한다.
+
 ## 정답 검증 원칙
 
-- `source_answer`: 문제집 정답지/페이지에서 읽은 값
+- `source_answer`: 문제집 페이지 하단 정답 영역 또는 별도 정답지에서 읽은 값
 - `ai_detected_answer`: AI Vision/OCR이 정답 표기를 인식한 값
 - `ai_reasoned_answer`: AI가 문제 내용을 독립적으로 풀어 판단한 값
 - `user_verified_answer`: 사용자가 원본과 비교해 확정한 값(선택)
@@ -60,6 +69,8 @@ Drive 사진 → AI Vision/OCR → QTimer 사이의 공통 교환 형식이다.
 - 문제 본문 잘림
 - 선택지 수 이상
 - 정답 번호 범위 이상
+- 하단 정답 영역 판독 불명확 또는 잘림
+- 같은 페이지 문제번호와 하단 정답 번호 매칭 실패
 - source_answer와 ai_detected_answer 불일치
 - source_answer와 ai_reasoned_answer 불일치
 - 표/그림과 문제 연결 불확실
