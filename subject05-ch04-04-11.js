@@ -1,0 +1,13 @@
+// Subject 5 / Chapter 04 시스템 보안 구축 4~11
+const S05C04B=(n,p,t,c,a,k,img)=>({id:`sujebi-2026-system-mgmt-ch04-${String(n).padStart(2,'0')}`,sourceQuestionNo:n,sourcePage:p,questionType:"single_choice",questionText:t,choices:c,sourceAnswer:a,aiDetectedAnswer:a,aiReasonedAnswer:a,sourceExplanation:k,finalKey:k,sourceImageUrl:img,verificationStatus:"auto_matched"});
+const SUBJECT05_CH04_04_11=[
+S05C04B(4,"5-46","소셜 네트워크에서 악의적인 사용자가 지인 또는 특정 유명인으로 가장하여 활동하는 공격 기법은?",["APT","Phishing","Logic Bomb","Cyberbullying"],2,"Phishing은 신뢰할 수 있는 사람·기관 등으로 가장하여 민감정보를 탈취하는 사회공학 공격이다.","https://drive.google.com/file/d/17iCB8yqBUAmDCwriRg7c8vcNCo-vPiLB/view"),
+S05C04B(5,"5-46","Snake, Darkside 등 시스템을 잠그거나 데이터를 암호화한 뒤 이를 인질로 금전을 요구하는 악성 프로그램은?",["Format String","Ransomware","Buffer Overflow","Adware"],2,"Ransomware는 시스템·파일을 암호화하거나 접근을 차단하고 금전을 요구하는 악성코드이다.","https://drive.google.com/file/d/17iCB8yqBUAmDCwriRg7c8vcNCo-vPiLB/view"),
+S05C04B(6,"5-47","백도어 탐지 방법으로 틀린 것은?",["무결성 검사","닫힌 포트 확인","로그 분석","SetUID 파일 검사"],2,"백도어 탐지에는 열린 포트·프로세스 확인, 로그 분석, 무결성 검사, SetUID 파일 검사 등을 사용한다. 닫힌 포트 확인은 적절하지 않다.","https://drive.google.com/file/d/19gp-4-NOXVrZOpCs4-vASJR1QXq0W85b/view"),
+S05C04B(7,"5-47","메모리에서 프로그램의 복귀 주소와 변수 사이에 특정 값을 저장해 두었다가 그 값이 변경되면 버퍼 오버플로우로 판단해 실행을 중단하는 기술은?",["모드 체크","리커버리 통제","시스로그","Stack Guard"],4,"Stack Guard는 복귀 주소와 지역 변수 사이에 Canary 값을 두어 변조 시 버퍼 오버플로우로 판단한다.","https://drive.google.com/file/d/19gp-4-NOXVrZOpCs4-vASJR1QXq0W85b/view"),
+S05C04B(8,"5-47","프로그램의 복귀 주소와 변수 사이에 특정 값을 저장하고 값 변경 시 오버플로우로 간주해 프로그램 실행을 중단하는 기술은?",["Stack Guard","Bridge","ASLR","FIN"],1,"Stack Guard는 Canary 값 변조를 검사하여 버퍼 오버플로우 공격을 탐지·차단한다.","https://drive.google.com/file/d/19gp-4-NOXVrZOpCs4-vASJR1QXq0W85b/view"),
+S05C04B(9,"5-48","DDoS 공격과 연관이 있는 공격 방법은?",["Secure Shell","Tribe Flood Network","Nimda","DeadLock"],2,"Tribe Flood Network(TFN)는 대표적인 분산 서비스 거부(DDoS) 공격 도구이다.","https://drive.google.com/file/d/1s77fzq5cNeoK8O0GZ54eBi5Gz9sWW9VG/view"),
+S05C04B(10,"5-48","세션 하이재킹을 탐지하는 방법으로 거리가 먼 것은?",["FTP SYN SEGMENT 탐지","비동기화 상태 탐지","ACK STORM 탐지","패킷 유실 및 재전송 증가 탐지"],1,"세션 하이재킹 탐지에는 비동기화 상태·ACK Storm·패킷 유실/재전송 증가 등을 활용한다. FTP SYN SEGMENT는 일반적인 탐지 항목이 아니다.","https://drive.google.com/file/d/1s77fzq5cNeoK8O0GZ54eBi5Gz9sWW9VG/view"),
+S05C04B(11,"5-48","특정 사이트에 매우 많은 ICMP Echo를 보내 응답 처리에 시스템 자원을 소진시켜 정상 동작을 방해하는 공격은?",["RBAC","Ping Flood","Brute-Force","Trojan Horses"],2,"Ping Flood는 대량 ICMP Echo 요청을 보내 대상 시스템의 네트워크·CPU 자원을 소모시키는 DoS 공격이다.","https://drive.google.com/file/d/1s77fzq5cNeoK8O0GZ54eBi5Gz9sWW9VG/view")
+];
+const s05c04bKnown=new Set(QUESTIONS.map(q=>q.id));QUESTIONS.push(...SUBJECT05_CH04_04_11.filter(q=>!s05c04bKnown.has(q.id)));
