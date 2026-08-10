@@ -4,7 +4,9 @@ const QTIMER_SUBJECTS = [
   {key:"s2", name:"2과목 소프트웨어 개발", prefixes:["sujebi-2026-sw-dev-"]},
   {key:"s3", name:"3과목 데이터베이스 구축", prefixes:["sujebi-2026-db-build-"]},
   {key:"s4", name:"4과목 프로그래밍 언어 활용", prefixes:["sujebi-2026-prog-lang-"]},
-  {key:"s5", name:"5과목 정보시스템 구축관리", prefixes:["sujebi-2026-system-build-"]}
+  // Subject 5 data was initially created with the system-mgmt prefix.
+  // Keep system-build as a compatibility alias for future normalized imports.
+  {key:"s5", name:"5과목 정보시스템 구축관리", prefixes:["sujebi-2026-system-mgmt-","sujebi-2026-system-build-"]}
 ];
 
 function qtimerQuestionsForSubject(subject){
