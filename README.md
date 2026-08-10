@@ -6,7 +6,7 @@
 
 - 1차 적용: 정보처리기사 필기
 - 핵심 목표: 문제 풀이 속도 측정 → 자동 채점 → 취약문제 수집 → 반복 회독 → 숙달
-- 현재 단계: **v0.1 MVP Slice 1 구현 및 Vercel Preview 검증**
+- 현재 단계: **v0.1 MVP Slice 1 구현 및 로컬/Preview 검증**
 
 ## 핵심 Workspace
 
@@ -26,6 +26,31 @@
 - CBT 모의고사
 - 취약 집중
 
+## 로컬 실행 — Windows 11 Pro + WSL2 Ubuntu 24.04
+
+Vercel 배포와 무관하게 WSL2에서 QTimer를 즉시 실행할 수 있습니다.
+
+```bash
+cd ~/projects/QTimer
+git pull --ff-only origin feat/v0.1-mvp
+bash scripts/check-wsl.sh
+bash scripts/start-wsl.sh
+```
+
+Windows 브라우저에서 다음 주소를 사용합니다.
+
+```text
+http://localhost:8080
+```
+
+종료:
+
+```bash
+bash scripts/stop-wsl.sh
+```
+
+자세한 내용은 `docs/dev-wsl.md`를 참고합니다.
+
 ## 데이터 방향
 
 - Google Drive: 원본 문제·정답 사진
@@ -40,6 +65,7 @@
 - `docs/spec/learning-flow.md`: 학습 흐름과 숙달 규칙
 - `docs/spec/data-model.md`: 데이터 모델
 - `docs/spec/ui-spec.md`: UI/UX 명세
+- `docs/dev-wsl.md`: Windows 11 Pro + WSL2 Ubuntu 24.04 로컬 실행 가이드
 - `docs/decisions/`: 주요 설계 결정 기록(ADR)
 - `docs/backlog.md`: v0.1 이후 후보
 
