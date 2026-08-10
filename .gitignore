@@ -1,0 +1,8 @@
+# QTimer local WSL runtime
+.qtimer-server.pid
+.qtimer-server.log
+
+# Common local/editor files
+.DS_Store
+Thumbs.db
+.vscode/*.log
