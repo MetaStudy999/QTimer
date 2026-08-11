@@ -65,8 +65,10 @@ function choiceText(q) { return Array.isArray(q?.choices) ? q.choices.map(v => S
 
 function isCodeExecution(q) {
   const qt = questionText(q), body = `${qt} ${choiceText(q)}`;
-  return /(?:다음\s+)?(?:C|C언어|JAVA|Java|Python|파이썬)\s*(?:프로그램|코드|에서)|프로그램의\s*(?:실행|출력)\s*결과|코드의\s*(?:실행|출력)\s*결과/i.test(qt)
-    || /#include|printf\s*\(|scanf\s*\(|System\.out|public\s+static\s+void|\bdef\s+[A-Za-z_]\w*\s*\(|print\s*\(|\bfor\s*\([^)]*;[^)]*;[^)]*\)|\bwhile\s*\([^)]*\)|\bswitch\s*\(|\bsizeof\s*\(|\bint\s+[A-Za-z_]\w*\s*=|\bchar\s+[A-Za-z_]\w*\s*=|\+\+|--|\*\s*[A-Za-z_]\w*\s*=\s*&/i.test(body);
+  const explicitProgram = /(?:다음\s+)?(?:C|C언어|JAVA|Java|Python|파이썬)\s*(?:프로그램|코드)|프로그램의\s*(?:실행|출력)\s*결과|코드의\s*(?:실행|출력)\s*결과/i.test(qt);
+  const inlineSnippet = /(?:C|C언어|JAVA|Java|Python|파이썬)(?:에서|의)[^?]*(?:`[^`]+`|출력(?:되는|은|은\?|값|결과)|실행\s*결과)/i.test(qt);
+  const concreteSyntax = /#include|printf\s*\(|scanf\s*\(|System\.out|public\s+static\s+void|\bdef\s+[A-Za-z_]\w*\s*\(|print\s*\(|\bfor\s*\([^)]*;[^)]*;[^)]*\)|\bwhile\s*\([^)]*\)|\bswitch\s*\(|\bsizeof\s*\(|\bint\s+[A-Za-z_]\w*\s*=|\bchar\s+[A-Za-z_]\w*\s*=|\+\+|--|\*\s*[A-Za-z_]\w*\s*=\s*&/i.test(body);
+  return explicitProgram || inlineSnippet || concreteSyntax;
 }
 function isSqlExecution(q) {
   const qt = questionText(q);
