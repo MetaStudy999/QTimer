@@ -22,20 +22,23 @@
 - Gate 1: 전체 973 / Duplicate IDs 0 / Invalid question records 0 / Script-load errors 0
 - Gate 2: critical structural issues 0 / review queue 0 / warnings 0 / unverified repeated stems 0
 - Gate 3: Unresolved answer-risk review candidates 0 / P0 0 / P1 0 / P2 0
-- 독립 검증 위험문항: 88개 (P0 7 / P1 43 / P2 38)
-- 명시적 검토 완료 경고: 3개 (P1 1 / P2 2)
+- 독립 검증 위험문항: 90개 (기존 검증 88개 + 최종 P2 독립 검증 2개)
+- 명시적 source/semantics 경고: 1개
 
-최종 QA 실행에서 과목별 미해결 위험문항과 코드 실행·SQL 실행·네트워크 계산·계산/알고리즘·암호/보안 카테고리별 미해결 위험문항은 모두 0이었다.
+최종 원격 CI에서도 Gate 1~3과 `index.html`의 모든 JavaScript 로드 참조 존재 검사가 통과했다.
+
+최종 QA에서 과목별 미해결 위험문항과 코드 실행·SQL 실행·네트워크 계산·계산/알고리즘·암호/보안 카테고리별 미해결 위험문항은 모두 0이다.
 
 따라서 이 기준점 이후에는 신규 원본 문제 추가, 정답 출처 변경, 문제 구조 변경이 없는 한 973문항을 다시 전수 검증하는 대신 세 QA Gate를 회귀 테스트로 실행한다. 문제은행 변경이 발생하면 해당 변경 문항을 우선 독립 검증한 뒤 Gate 1~3을 다시 통과해야 한다.
 
-### 검토 완료 경고 3건
+### 남아 있는 의미론 경고 1건
 
 - `sujebi-2026-prog-lang-ch02-17`: `source_semantics_warning` — 교재 하단 정답을 유지하되 표준 C 포인터 산술의 엄밀한 의미론상 주의가 필요한 문항
-- `sujebi-2026-system-mgmt-ch01-31`: `classification_false_positive` — COCOMO Organic 정의 문항으로 자동 계산 위험군 과잉 탐지
-- `sujebi-2026-system-mgmt-ch05-05`: `classification_false_positive` — Honeypot 정의 문항으로 자동 계산 위험군 과잉 탐지
 
-위 3건은 미검증 문항이 아니라 원본/의미론 또는 자동 분류 특성을 명시적으로 검토 완료한 항목이다.
+다음 두 문항은 과거 자동 계산 위험군 과잉 탐지로 분류했지만 최종 P2 단계에서 정답 자체도 독립 검증했다.
+
+- `sujebi-2026-system-mgmt-ch01-31`: COCOMO Organic 정의, 정답 ②
+- `sujebi-2026-system-mgmt-ch05-05`: Honeypot 정의, 정답 ③
 
 ## 복구한 원본 페이지
 
@@ -155,6 +158,8 @@ bash scripts/check-wsl.sh
 ```
 
 위 명령은 Gate 1~3을 연속 실행한다.
+
+원격 PR에서는 `.github/workflows/qtimer-qa.yml`이 동일 Gate와 브라우저 스크립트 참조 무결성을 자동 검증한다.
 
 ## 무결성 규칙
 
