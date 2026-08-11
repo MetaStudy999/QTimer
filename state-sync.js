@@ -15,22 +15,16 @@
     },
     {
       key:"s4", prefixes:["sujebi-2026-prog-lang-"],
-      // Chapter 02 questions 77~79 are intentionally absent until source images are verified.
-      ranges:{1:[[1,6]],2:[[1,76],[80,83]],3:[[1,115]],4:[[1,7]]}
+      ranges:{1:[[1,6]],2:[[1,83]],3:[[1,115]],4:[[1,7]]}
     },
     {
       key:"s5", prefixes:["sujebi-2026-system-mgmt-","sujebi-2026-system-build-"],
-      // Subject 5 source photos were verified through Chapter 05 question 14.
       ranges:{1:[[1,58]],2:[[1,41]],3:[[1,35]],4:[[1,44]],5:[[1,14]]}
     }
   ];
 
-  // Verified/current means source image + answer area have been checked and data is loadable now.
-  const expectedCurrent = {s1:221,s2:158,s3:191,s4:208,s5:192,total:970};
-  // Logical full-book target additionally includes the known missing Subject 4 Ch02 Q77~79 source page.
-  const fullBookExpected = {s1:221,s2:158,s3:191,s4:211,s5:192,total:973};
-  const knownSourceGaps = {s4:["ch02-77","ch02-78","ch02-79"]};
-
+  // Source image + lower answer area verified and loadable question-bank baseline.
+  const expectedCurrent = {s1:221,s2:158,s3:191,s4:211,s5:192,total:973};
   const globalIds = new Set();
   const logicalSeen = Object.fromEntries(structured.map(s => [s.key,new Set()]));
   const normalized = [];
@@ -123,8 +117,6 @@
     total:QUESTIONS.length,
     prefixCounts,
     expectedCurrent,
-    fullBookExpected,
-    knownSourceGaps,
     mismatches,
     missing,
     removed
