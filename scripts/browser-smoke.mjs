@@ -75,7 +75,7 @@ try {
   await page.click('#pauseBtn');
   assert((await page.$eval('#timerState', element => element.textContent)) === 'PAUSE', 'Pause state was not applied');
   await page.click('#pauseBtn');
-  assert((await page.$eval('#timerState', element => element.textContent)) === 'RUN', 'Timer did not resume');
+  assert((await page.$eval('#timerState', element => element.textContent)) === 'RESUME', 'Timer did not resume');
 
   await page.click('.choice[data-answer="1"]');
   await page.click('#submitBtn');
