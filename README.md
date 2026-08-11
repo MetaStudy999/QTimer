@@ -63,15 +63,21 @@ bash scripts/stop-wsl.sh
 # Gate 1: 수량 / 기본 레코드 / 중복 / 스크립트 로드
 node scripts/audit-question-bank.mjs
 
-# Gate 2: Chapter 연속성 / ID-문제번호 / 원본 링크 / 정답 출처 / 중복 문제문
+# Gate 2: Chapter 연속성 / ID-문제번호 / 원본 링크 / 정답 출처 / 반복 문제문
 node scripts/qa-question-bank.mjs
+
+# Gate 3: 코드·SQL·계산·네트워크·암호 문제의 정답 위험도 우선순위
+node scripts/audit-answer-risk.mjs --summary
+node scripts/audit-answer-risk.mjs --limit=80
 ```
 
-`bash scripts/check-wsl.sh`는 두 Gate를 모두 연속 실행합니다.
+`bash scripts/check-wsl.sh`는 세 Gate를 모두 연속 실행합니다.
 
-Gate 1 정상 기준은 **전체 973문항 / 중복 0 / 잘못된 레코드 0 / 스크립트 로드 오류 0**입니다. Gate 2에서는 구조적 오류가 0이어야 하며, 정답 출처 불일치나 동일 문제문 중복 후보는 `Manual review queue`로 별도 표시합니다.
+- **Gate 1 (blocking)**: 전체 973문항 / 중복 0 / 잘못된 레코드 0 / 스크립트 로드 오류 0
+- **Gate 2 (blocking)**: 구조적 오류 0 / 미확인 반복 문제문 0 / 새 Manual review queue 0
+- **Gate 3 (non-blocking)**: P0/P1/P2 정답 위험군을 추출한다. 후보가 존재하는 것은 실패가 아니며 P0부터 원본과 독립 풀이로 재검증한다.
 
-자세한 내용은 `docs/dev-wsl.md`와 `docs/implementation/question-bank-baseline.md`를 참고합니다.
+자세한 내용은 `docs/dev-wsl.md`, `docs/implementation/question-bank-baseline.md`, `docs/implementation/answer-risk-qa.md`를 참고합니다.
 
 ## 개발 브랜치 운영
 
@@ -95,7 +101,8 @@ Gate 1 정상 기준은 **전체 973문항 / 중복 0 / 잘못된 레코드 0 / 
 - `docs/spec/data-model.md`: 데이터 모델
 - `docs/spec/ui-spec.md`: UI/UX 명세
 - `docs/dev-wsl.md`: Windows 11 Pro + WSL2 Ubuntu 24.04 로컬 실행 가이드
-- `docs/implementation/question-bank-baseline.md`: 과목별 문제 수·Chapter 범위·2단계 QA 기준
+- `docs/implementation/question-bank-baseline.md`: 과목별 문제 수·Chapter 범위·구조 QA 기준
+- `docs/implementation/answer-risk-qa.md`: P0/P1/P2 정답 위험군 선별 및 검증 절차
 - `docs/decisions/`: 주요 설계 결정 기록(ADR)
 - `docs/backlog.md`: v0.1 이후 후보
 
