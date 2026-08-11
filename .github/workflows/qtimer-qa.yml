@@ -1,0 +1,99 @@
+name: QTimer QA
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [work/data-ingest, main]
+
+permissions:
+  contents: read
+
+jobs:
+  question-bank-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Gate 1 - question bank integrity
+        run: node scripts/audit-question-bank.mjs
+
+      - name: Gate 2 - deep structural QA
+        run: node scripts/qa-question-bank.mjs
+
+      - name: Gate 3 - release answer-risk baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$(node scripts/audit-answer-risk.mjs --summary)"
+          printf '%s\n' "$output"
+          grep -Fq 'Unresolved risk review candidates: 0' <<< "$output"
+          grep -Fq 'P0: 0 / P1: 0 / P2: 0' <<< "$output"
+
+      - name: Verify browser script references exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const index = fs.readFileSync('index.html', 'utf8');
+          const refs = [...index.matchAll(/<script\s+src=["']\.\/([^"']+\.js)["']/g)].map(m => m[1]);
+          const missing = refs.filter(ref => !fs.existsSync(ref));
+          console.log(`Script refs: ${refs.length}`);
+          if (missing.length) {
+            console.error(`Missing script refs: ${missing.join(', ')}`);
+            process.exit(1);
+          }
+          console.log('All index.html script references exist.');
+          NODE
+
+      - name: Install browser smoke dependency
+        run: npm install --no-save --no-package-lock puppeteer-core@24.16.0
+
+      - name: Start QTimer static server
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8080 --bind 127.0.0.1 >/tmp/qtimer-http.log 2>&1 &
+          echo $! >/tmp/qtimer-http.pid
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8080/ >/dev/null; then
+              echo 'QTimer HTTP server ready.'
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/qtimer-http.log
+          exit 1
+
+      - name: Browser smoke - study flow
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || true)"
+          [[ -n "$CHROME_BIN" ]] || CHROME_BIN="$(command -v google-chrome-stable || true)"
+          [[ -n "$CHROME_BIN" ]] || CHROME_BIN="$(command -v chromium || true)"
+          [[ -n "$CHROME_BIN" ]] || CHROME_BIN="$(command -v chromium-browser || true)"
+          if [[ -z "$CHROME_BIN" ]]; then
+            echo 'Chrome/Chromium executable not found on runner.' >&2
+            exit 1
+          fi
+
+          set +e
+          output="$(CHROME_BIN="$CHROME_BIN" QTIMER_URL="http://127.0.0.1:8080" node scripts/browser-smoke.mjs 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [[ $status -ne 0 ]]; then
+            summary="$(printf '%s\n' "$output" | tail -n 6 | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')"
+            echo "::error title=QTimer browser smoke::${summary}"
+            exit "$status"
+          fi

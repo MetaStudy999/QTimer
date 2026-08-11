@@ -1,0 +1,21 @@
+// Subject 4 / Chapter 02 프로그래밍 언어 활용 19~34
+const S04C02C=(n,p,t,c,a,k,img)=>({id:`sujebi-2026-prog-lang-ch02-${String(n).padStart(2,'0')}`,sourceQuestionNo:n,sourcePage:p,questionType:"single_choice",questionText:t,choices:c,sourceAnswer:a,aiDetectedAnswer:a,aiReasonedAnswer:a,sourceExplanation:k,finalKey:k,sourceImageUrl:img,verificationStatus:"auto_matched"});
+const SUBJECT04_CH02_19_34=[
+S04C02C(19,"4-12","다음 C 프로그램의 실행 결과는? `int sum=0; for(int i=1;i<=10;i=i+2) sum+=i; printf(\"%d\",sum);`",["15","19","25","27"],3,"1+3+5+7+9=25.","https://drive.google.com/file/d/1giJ6psI_8CPzM5WC5W4UqnPwtANB1ZMk/view"),
+S04C02C(20,"4-12","다음 JAVA 프로그램에서 arr[0]=0, arr[1]=1이고 `arr[i+2]=arr[i+1]+arr[i]`를 i<8 동안 반복한 뒤 arr[9]를 출력한다. 결과는?",["13","21","34","55"],3,"피보나치 수열 0,1,1,2,3,5,8,13,21,34이므로 arr[9]=34.","https://drive.google.com/file/d/1giJ6psI_8CPzM5WC5W4UqnPwtANB1ZMk/view"),
+S04C02C(21,"4-13","JAVA에서 `int x=1,y=6; while(y--) x++;`를 실행하면?",["x=7,y=0","x=6,y=-1","x=7,y=-1","컴파일 오류 발생"],4,"Java의 while 조건식은 boolean이어야 하므로 정수식 y--를 조건으로 사용할 수 없다.","https://drive.google.com/file/d/1ajYvtIi_PFoY9gJgqCQ6yTUJrRsBDiKR/view"),
+S04C02C(22,"4-13","JAVA에서 `int cnt=0; do{cnt++;}while(cnt<0); if(cnt==1) cnt++; else cnt=cnt+3;` 후 cnt는?",["2","3","4","5"],1,"do-while은 1회 실행되어 cnt=1, if가 참이어서 한 번 더 증가해 2.","https://drive.google.com/file/d/1ajYvtIi_PFoY9gJgqCQ6yTUJrRsBDiKR/view"),
+S04C02C(23,"4-13","Python 무한 while문에서 A,B,C를 출력한 뒤 `continue`가 있고 그 다음에 D 출력문이 있다. 실행 결과는?",["A,B,C가 반복 출력","A,B,C만 한 번 출력","A,B,C,D가 반복 출력","A,B,C,D만 한 번 출력"],1,"continue가 D 출력문을 건너뛰므로 A,B,C만 무한 반복된다.","https://drive.google.com/file/d/1ajYvtIi_PFoY9gJgqCQ6yTUJrRsBDiKR/view"),
+S04C02C(24,"4-14","Python 함수 `cs(n)`가 0부터 n까지 합을 반환할 때 `print(cs(11))`의 결과는?",["45","55","66","78"],3,"0+1+...+11=66.","https://drive.google.com/file/d/12sfW8HBehQ388vnEhyG-KQ_A9L-JZUVr/view"),
+S04C02C(25,"4-14","Python 클래스에서 `setdata(4,2)` 후 `add()`가 두 인스턴스 변수의 합을 반환한다. 출력은?",["0","2","4","6"],4,"4+2=6.","https://drive.google.com/file/d/12sfW8HBehQ388vnEhyG-KQ_A9L-JZUVr/view"),
+S04C02C(26,"4-15","C언어에서 a=1,b=2일 때 `a < b + 2 && a << 1 <= b`의 결과는?",["0","1","3","5"],2,"1<4는 참, (1<<1)=2이고 2<=2도 참, 참&&참=1.","https://drive.google.com/file/d/1XVapWWvMx_XUwtMFeqoC_KRoyA3lBRGS/view"),
+S04C02C(27,"4-15","C언어에서 두 논릿값 중 하나라도 참이면 1, 둘 다 거짓이면 0을 반환하는 연산자는?",["||","&&","**","!="],1,"논리 OR 연산자는 ||이다.","https://drive.google.com/file/d/1XVapWWvMx_XUwtMFeqoC_KRoyA3lBRGS/view"),
+S04C02C(28,"4-15","Python 시퀀스 자료형 중 여러 데이터 타입을 저장할 수 있지만 저장 후 내용을 변경할 수 없는 것은?",["Complex","List","Dict","Tuple"],4,"Tuple은 순서가 있는 불변(immutable) 시퀀스이다.","https://drive.google.com/file/d/1XVapWWvMx_XUwtMFeqoC_KRoyA3lBRGS/view"),
+S04C02C(29,"4-16","JAVA에서 a=1,b=2,c=3,d=4; `mx=a<(b?b:a)`의 교재 코드 흐름에서 else 분기로 `mn=b<mx?d:c`가 수행될 때 출력되는 값은?",["1","2","3","4"],3,"교재 실행 흐름상 mn에 3이 저장되어 3을 출력한다.","https://drive.google.com/file/d/1juJINMEMmHRc3nm3UQZXSNEaDocLg4O_/view"),
+S04C02C(30,"4-16","Python에서 `a=100`, `list_data=['a','b','c']`, `dict_data={'a':90,'b':95}`일 때 `list_data[0]`와 `dict_data['a']`를 차례로 출력한 결과는?",["a 다음 줄 90","100 다음 줄 90","100 다음 줄 100","a 다음 줄 a"],1,"리스트의 0번째 값은 문자열 a, 딕셔너리 키 a의 값은 90.","https://drive.google.com/file/d/1juJINMEMmHRc3nm3UQZXSNEaDocLg4O_/view"),
+S04C02C(31,"4-17","C 2차원 배열 `int arr[2][3]={1,2,3,4,5,6}; int (*p)[3]=NULL; p=arr;`에서 교재의 두 printf 식이 출력하는 값의 조합은?",["7,5","8,5","8,9","7,9"],3,"첫 식 2+6=8, 두 번째 식 4+5=9.","https://drive.google.com/file/d/1WRXEhg_ginp3ZkdOdlaJvCJKXMu9jxd3/view"),
+S04C02C(32,"4-17","C에서 `int a[]={14,22,30,38};`이고 a[0]의 주소가 10, int 크기가 4Byte일 때 `&a[2]`와 `a`를 주소 형식으로 출력하면?",["14,10","14,14","18,10","18,14"],3,"a[2] 주소=10+2×4=18, 배열명 a는 첫 원소 주소 10.","https://drive.google.com/file/d/1WRXEhg_ginp3ZkdOdlaJvCJKXMu9jxd3/view"),
+S04C02C(33,"4-18","C에서 i=0부터 무한 while을 돌며 i==4일 때 break하고 아니면 i++한 뒤 i를 출력한다. 결과는?",["i=0","i=1","i=3","i=4"],4,"i가 4가 되는 순간 break되므로 최종 i=4.","https://drive.google.com/file/d/1tDPi8Qs1CMvUVs-yxvp9Ciwb-sRHVugO/view"),
+S04C02C(34,"4-18","JAVA char 배열 `{'A','B','D','D','A','B','C'}`을 순회하며 B는 C로, 마지막 원소는 직전 원소로, 나머지는 다음 원소로 치환하는 메서드 실행 후 출력은?",["BCDABCA","BCDABCC","CDDACCC","CDDACCA"],2,"순차적 제자리 치환 결과 B,C,D,A,B,C,C → BCDABCC.","https://drive.google.com/file/d/1tDPi8Qs1CMvUVs-yxvp9Ciwb-sRHVugO/view")
+];
+const s04c02cKnown=new Set(QUESTIONS.map(q=>q.id));QUESTIONS.push(...SUBJECT04_CH02_19_34.filter(q=>!s04c02cKnown.has(q.id)));

@@ -1,0 +1,13 @@
+// Subject 5 / Chapter 03 소프트웨어 개발 보안 구축 17~24
+const S05C03C=(n,p,t,c,a,k,img)=>({id:`sujebi-2026-system-mgmt-ch03-${String(n).padStart(2,'0')}`,sourceQuestionNo:n,sourcePage:p,questionType:"single_choice",questionText:t,choices:c,sourceAnswer:a,aiDetectedAnswer:a,aiReasonedAnswer:a,sourceExplanation:k,finalKey:k,sourceImageUrl:img,verificationStatus:"auto_matched"});
+const SUBJECT05_CH03_17_24=[
+S05C03C(17,"5-40","큰 숫자를 소인수 분해하기 어렵다는 성질에 기반하여 1978년 MIT에서 제안된 공개키 암호화 알고리즘은?",["DES","ARIA","SEED","RSA"],4,"RSA는 큰 정수의 소인수분해 문제의 어려움에 기반한 대표적인 공개키 암호 알고리즘이다.","https://drive.google.com/file/d/1g051TycdjA1JnqrEomM1R8PlbbkxFUrM/view"),
+S05C03C(18,"5-40","공개키 암호화 방식에 대한 설명으로 틀린 것은?",["공개키로 암호화된 메시지는 반드시 공개키로 복호화해야 한다.","비대칭 암호화 방식이라고도 한다.","대표적인 기법으로 RSA가 있다.","키 분배가 용이하고 관리해야 할 키 개수가 적다."],1,"공개키로 암호화한 메시지는 대응되는 개인키로 복호화한다.","https://drive.google.com/file/d/1g051TycdjA1JnqrEomM1R8PlbbkxFUrM/view"),
+S05C03C(19,"5-40","대칭 암호 알고리즘과 비대칭 암호 알고리즘에 대한 설명으로 틀린 것은?",["대칭 암호는 비교적 실행 속도가 빨라 다양한 암호 핵심 함수에 사용할 수 있다.","대칭 암호는 비밀키 전달을 위한 키 교환이 필요하며 암·복호화 속도가 빠르다.","비대칭 암호는 자신만 보관하는 비밀키를 이용하여 인증·전자서명 등에 적용할 수 있다.","대표적인 대칭키 암호 알고리즘으로 AES, IDEA 등이 있다."],2,"대칭키는 동일 비밀키를 공유해야 하므로 안전한 키 교환 문제가 존재한다. 교재 정답 기준으로 ②이다.","https://drive.google.com/file/d/1g051TycdjA1JnqrEomM1R8PlbbkxFUrM/view"),
+S05C03C(20,"5-40","다음 암호 알고리즘 중 성격이 다른 하나는?",["MD4","MD5","SHA-1","AES"],4,"MD4·MD5·SHA-1은 일방향 해시 알고리즘이고 AES는 대칭키 블록 암호이다.","https://drive.google.com/file/d/1g051TycdjA1JnqrEomM1R8PlbbkxFUrM/view"),
+S05C03C(21,"5-41","정보보호를 위한 암호화 용어 설명으로 틀린 것은?",["평문: 암호화되기 전의 원본 메시지","암호문: 암호화가 적용된 메시지","복호화: 평문을 암호문으로 바꾸는 작업","키: 적절한 암호화를 위해 사용하는 값"],3,"복호화는 암호문을 평문으로 되돌리는 작업이다.","https://drive.google.com/file/d/1AhO94JYKFbL6nrnNVoYvtpjjefiSOjCO/view"),
+S05C03C(22,"5-41","스트림 암호화 방식의 설명으로 옳지 않은 것은?",["비트·바이트·단어를 순차적으로 암호화한다.","해시 함수를 이용한 해시 암호화 방식을 사용한다.","RC4는 스트림 암호 방식에 해당한다.","대칭키 암호화 방식이다."],2,"스트림 암호는 평문 단위를 연속적으로 암호화하는 대칭키 방식이며 해시 함수 기반 일방향 해시와는 다르다.","https://drive.google.com/file/d/1AhO94JYKFbL6nrnNVoYvtpjjefiSOjCO/view"),
+S05C03C(23,"5-41","공개키 암호에 대한 설명으로 틀린 것은?",["10명이 공개키 암호를 사용할 경우 5개의 키가 필요하다.","복호화 키는 비공개되어 있다.","송신자는 수신자의 공개키로 문서를 암호화한다.","대표적인 공개키 알고리즘으로 RSA가 있다."],1,"공개키 방식은 사용자마다 공개키·개인키 한 쌍이 필요하므로 10명이면 총 20개의 키가 필요하다.","https://drive.google.com/file/d/1AhO94JYKFbL6nrnNVoYvtpjjefiSOjCO/view"),
+S05C03C(24,"5-41","해시(Hash) 기법에 대한 설명으로 틀린 것은?",["임의 길이 입력을 고정 길이 해시값으로 변환한다.","주로 공개키 암호화 방식에서 키 생성을 위해 사용한다.","대표 해시 알고리즘으로 HAVAL, SHA-1 등이 있다.","해시 함수는 일방향 함수이다."],2,"해시는 무결성 확인·전자서명 보조 등에 사용하는 일방향 함수이며 공개키 암호의 키 생성이 주 목적은 아니다.","https://drive.google.com/file/d/1AhO94JYKFbL6nrnNVoYvtpjjefiSOjCO/view")
+];
+const s05c03cKnown=new Set(QUESTIONS.map(q=>q.id));QUESTIONS.push(...SUBJECT05_CH03_17_24.filter(q=>!s05c03cKnown.has(q.id)));

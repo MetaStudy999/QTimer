@@ -1,0 +1,25 @@
+// Subject 3 / Chapter 03 논리 데이터베이스 설계 21~40
+const S03C03B=(n,p,t,c,a,k,img)=>({id:`sujebi-2026-db-build-ch03-${String(n).padStart(2,'0')}`,sourceQuestionNo:n,sourcePage:p,questionType:"single_choice",questionText:t,choices:c,sourceAnswer:a,aiDetectedAnswer:a,aiReasonedAnswer:a,sourceExplanation:k,finalKey:k,sourceImageUrl:img,verificationStatus:"auto_matched",extractionStatus:"READY_PARAPHRASE"});
+const SUBJECT03_CH03_21_40=[
+S03C03B(21,"3-35","관계대수에 대한 설명으로 옳지 않은 것은?",["비절차적 언어이다.","릴레이션을 입력으로 받아 릴레이션을 결과로 만든다.","연산자를 이용하여 질의를 표현한다.","관계형 데이터베이스의 질의 표현에 사용된다."],1,"관계대수는 절차적 언어이고 관계해석은 비절차적 언어이다.","https://drive.google.com/file/d/15rfD1GIEvOmtKAw71AgmGdtotJNxXXma/view"),
+S03C03B(22,"3-35","관계대수에 대한 설명으로 옳지 않은 것은?",["절차적 질의 언어이다.","릴레이션을 대상으로 연산한다.","Select·Project 등을 사용한다.","프레디킷(술어) 해석에 직접 기반한 비절차적 언어이다."],4,"술어 해석에 기반한 비절차적 방식은 관계해석이다.","https://drive.google.com/file/d/15rfD1GIEvOmtKAw71AgmGdtotJNxXXma/view"),
+S03C03B(23,"3-36","관계해석(Relational Calculus)에 대한 설명으로 옳지 않은 것은?",["원하는 결과의 조건을 기술한다.","비절차적 성격을 가진다.","튜플 관계해석과 도메인 관계해석이 있다.","데이터를 얻는 연산 순서를 절차적으로 명시한다."],4,"관계해석은 결과 조건을 기술하는 비절차적 언어이다.","https://drive.google.com/file/d/1sVxeJVanJntWQPfOfhJDEvF5waBHW28j/view"),
+S03C03B(24,"3-36","릴레이션에서 조건을 만족하는 행의 수평적 부분집합을 구하는 σ 연산은?",["Select","Project","Join","Division"],1,"σ(시그마)=Select=행 선택.","https://drive.google.com/file/d/1sVxeJVanJntWQPfOfhJDEvF5waBHW28j/view"),
+S03C03B(25,"3-36","관계해석에 대한 설명으로 옳지 않은 것은?",["비절차적 언어이다.","처리 절차를 순서대로 명시하는 절차적 언어이다.","원하는 데이터의 조건을 기술한다.","관계형 질의의 이론적 기반이다."],2,"관계해석=비절차적, 관계대수=절차적.","https://drive.google.com/file/d/1sVxeJVanJntWQPfOfhJDEvF5waBHW28j/view"),
+S03C03B(26,"3-36","시스템 카탈로그에 대한 설명으로 옳지 않은 것은?",["데이터 사전이라고도 한다.","일반 사용자가 SQL로 카탈로그 내용을 직접 갱신하는 것이 원칙이다.","DBMS가 스키마 등 메타데이터를 관리한다.","질의 최적화 등에 활용될 수 있다."],2,"시스템 카탈로그는 DBMS가 관리하며 일반 사용자가 직접 갱신하지 않는다.","https://drive.google.com/file/d/1sVxeJVanJntWQPfOfhJDEvF5waBHW28j/view"),
+S03C03B(27,"3-37","릴레이션에 포함된 튜플의 개수를 뜻하는 용어는?",["Cardinality","Degree","Domain","Schema"],1,"튜플 수=Cardinality.","https://drive.google.com/file/d/15EPNPSi9GQ-zeFGp7bSeZskbJTTUxhF-/view"),
+S03C03B(28,"3-37","시스템 카탈로그에 대한 설명으로 옳지 않은 것은?",["사용자가 데이터 무결성을 위해 SQL로 카탈로그를 직접 갱신한다.","DBMS가 자동으로 유지·관리한다.","메타데이터를 저장한다.","DBA와 DBMS가 데이터베이스 관리에 활용한다."],1,"카탈로그의 직접 갱신은 일반 사용자 작업이 아니다.","https://drive.google.com/file/d/15EPNPSi9GQ-zeFGp7bSeZskbJTTUxhF-/view"),
+S03C03B(29,"3-37","시스템 카탈로그에 대한 설명으로 옳지 않은 것은?",["DB 객체 정보를 포함한다.","데이터 사전 역할을 한다.","DBMS가 유지한다.","일반 사용자는 카탈로그 정보를 조회할 수 없다."],4,"권한 범위에서 카탈로그 조회는 가능하나 직접 갱신은 제한된다.","https://drive.google.com/file/d/15EPNPSi9GQ-zeFGp7bSeZskbJTTUxhF-/view"),
+S03C03B(30,"3-37","릴레이션의 Degree를 올바르게 설명한 것은?",["튜플의 수","후보키의 수","도메인의 수","애트리뷰트의 수"],4,"Degree=애트리뷰트 수.","https://drive.google.com/file/d/15EPNPSi9GQ-zeFGp7bSeZskbJTTUxhF-/view"),
+S03C03B(31,"3-37","세 속성의 도메인 원소 수가 각각 3, 2, 4일 때 가능한 최대 튜플 수는?",["24","12","9","6"],1,"가능한 조합 최대 수=3×2×4=24.","https://drive.google.com/file/d/15EPNPSi9GQ-zeFGp7bSeZskbJTTUxhF-/view"),
+S03C03B(32,"3-38","행 4개, 열 6개인 릴레이션의 Cardinality와 Degree는?",["Cardinality 6, Degree 4","Cardinality 4, Degree 6","Cardinality 10, Degree 24","Cardinality 24, Degree 10"],2,"Cardinality=행 4, Degree=열 6.","https://drive.google.com/file/d/1MdUQMOHGwfPMQC_BLGglQQry1Wwt1Lem/view"),
+S03C03B(33,"3-38","릴레이션의 특성으로 옳지 않은 것은?",["튜플 중복이 없다.","튜플은 반드시 특정한 순서를 갖는다.","속성값은 원자값이다.","속성 순서는 의미가 없다."],2,"릴레이션의 튜플 순서는 의미가 없다.","https://drive.google.com/file/d/1MdUQMOHGwfPMQC_BLGglQQry1Wwt1Lem/view"),
+S03C03B(34,"3-38","속성이 5개인 릴레이션에서 애트리뷰트 수와 Degree의 합은?",["5","8","10","25"],3,"속성 수=Degree=5이므로 합은 10.","https://drive.google.com/file/d/1MdUQMOHGwfPMQC_BLGglQQry1Wwt1Lem/view"),
+S03C03B(35,"3-38","순수 관계 연산자가 아닌 것은?",["Select","Project","Join","Section"],4,"순수 관계 연산=Select, Project, Join, Division.","https://drive.google.com/file/d/1MdUQMOHGwfPMQC_BLGglQQry1Wwt1Lem/view"),
+S03C03B(36,"3-39","데이터 모델의 필수 구성요소가 아닌 것은?",["Structure","Output Structure","Operation","Constraint"],2,"데이터 모델 3요소=구조·연산·제약조건.","https://drive.google.com/file/d/1Ql1uVctQ3degQEcWE_hAqq3DUVeMQTq_/view"),
+S03C03B(37,"3-39","논리적 데이터베이스 설계에 대한 설명으로 옳지 않은 것은?",["사용자 트랜잭션을 모델링하는 것이 개념 설계가 아니라 논리 설계의 핵심 출발 작업이다.","목표 DBMS에 맞는 논리 스키마를 설계한다.","정규화 등을 수행한다.","논리적 데이터 구조와 관계를 정의한다."],1,"사용자 트랜잭션 모델링은 개념적 설계 단계에서 수행하는 항목으로 분류된다.","https://drive.google.com/file/d/1Ql1uVctQ3degQEcWE_hAqq3DUVeMQTq_/view"),
+S03C03B(38,"3-39","논리적 설계 단계의 작업이 아닌 것은?",["레코드 집중도 분석 및 저장 구조 설계","목표 DBMS에 맞는 스키마 설계","정규화","논리적 관계와 제약조건 정의"],1,"레코드 집중도·저장 구조·접근 경로는 물리적 설계 영역이다.","https://drive.google.com/file/d/1Ql1uVctQ3degQEcWE_hAqq3DUVeMQTq_/view"),
+S03C03B(39,"3-39","물리적 데이터베이스 설계의 작업이 아닌 것은?",["저장 레코드 양식 결정","접근 경로 설계","저장 구조와 성능 고려","목표 DBMS에 맞는 논리 스키마 설계"],4,"목표 DBMS에 맞는 스키마 설계는 논리적 설계 단계이다.","https://drive.google.com/file/d/1Ql1uVctQ3degQEcWE_hAqq3DUVeMQTq_/view"),
+S03C03B(40,"3-40","저장 레코드 형식, 레코드 집중도, 접근 경로를 결정하는 데이터베이스 설계 단계는?",["요구조건 분석","개념적 설계","논리적 설계","물리적 설계"],4,"저장 구조·접근 경로 결정=물리적 설계.","https://drive.google.com/file/d/1CoJBI3VeWQ5Dcf-Nrfs2X6IZvl7sLNNV/view")
+];
+const s03c03bKnown=new Set(QUESTIONS.map(q=>q.id));QUESTIONS.push(...SUBJECT03_CH03_21_40.filter(q=>!s03c03bKnown.has(q.id)));

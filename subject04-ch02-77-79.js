@@ -1,0 +1,8 @@
+// Subject 4 / Chapter 02 프로그래밍 언어 활용 77~79
+const S04C02GAP=(n,p,t,c,a,k,img)=>({id:`sujebi-2026-prog-lang-ch02-${String(n).padStart(2,'0')}`,sourceQuestionNo:n,sourcePage:p,questionType:"single_choice",questionText:t,choices:c,sourceAnswer:a,aiDetectedAnswer:a,aiReasonedAnswer:a,sourceExplanation:k,finalKey:k,sourceImageUrl:img,verificationStatus:"auto_matched"});
+const SUBJECT04_CH02_77_79=[
+S04C02GAP(77,"4-35","다음 C 언어 프로그램이 실행되었을 때의 결과는? `char str[50] = \"nation\"; char *p2 = \"alter\"; strcat(str, p2); printf(\"%s\", str);`",["nation","nationalter","alter","alternation"],2,"strcat(str,p2)는 str 뒤에 p2 문자열을 이어 붙이므로 nation + alter = nationalter가 출력된다.","https://drive.google.com/file/d/17mmFPKLFxHRfYhB0-g-C4L0dfhTEpMNl/view"),
+S04C02GAP(78,"4-35","C 언어 라이브러리 중 stdlib.h에 대한 설명으로 옳은 것은?",["문자열을 수치 데이터로 바꾸는 문자 변환 함수와 수치를 문자열로 바꾸는 변환 함수 등이 있다.","문자열 처리 함수로 strlen()이 포함되어 있다.","표준 입출력 라이브러리이다.","삼각 함수, 제곱근, 지수 등 수학적인 함수를 내장하고 있다."],1,"stdlib.h에는 atoi, atof 등 문자열·수치 변환을 포함한 일반 유틸리티 함수가 있다. strlen은 string.h, 표준 입출력은 stdio.h, 수학 함수는 math.h이다.","https://drive.google.com/file/d/17mmFPKLFxHRfYhB0-g-C4L0dfhTEpMNl/view"),
+S04C02GAP(79,"4-35","다음 C 언어 프로그램이 실행되었을 때의 실행 결과는? `char str1[20]=\"KOREA\"; char str2[20]=\"LOVE\"; char* p1=str1; char* p2=str2; str1[1]=p2[2]; str2[3]=p1[4]; strcat(str1,str2); printf(\"%c\",*(p1+2));`",["E","V","R","O"],3,"p1은 str1을 가리킨다. 여러 문자 변경과 strcat 이후에도 *(p1+2)는 str1[2]이며 원래 KOREA의 세 번째 문자 R이므로 R을 출력한다.","https://drive.google.com/file/d/17mmFPKLFxHRfYhB0-g-C4L0dfhTEpMNl/view")
+];
+const s04c02GapKnown=new Set(QUESTIONS.map(q=>q.id));QUESTIONS.push(...SUBJECT04_CH02_77_79.filter(q=>!s04c02GapKnown.has(q.id)));
