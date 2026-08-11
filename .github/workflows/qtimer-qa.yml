@@ -1,0 +1,56 @@
+name: QTimer QA
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [work/data-ingest, main]
+
+permissions:
+  contents: read
+
+jobs:
+  question-bank-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Gate 1 - question bank integrity
+        run: node scripts/audit-question-bank.mjs
+
+      - name: Gate 2 - deep structural QA
+        run: node scripts/qa-question-bank.mjs
+
+      - name: Gate 3 - release answer-risk baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$(node scripts/audit-answer-risk.mjs --summary)"
+          printf '%s\n' "$output"
+          grep -Fq 'Unresolved risk review candidates: 0' <<< "$output"
+          grep -Fq 'P0: 0 / P1: 0 / P2: 0' <<< "$output"
+
+      - name: Verify browser script references exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const index = fs.readFileSync('index.html', 'utf8');
+          const refs = [...index.matchAll(/<script\s+src=["']\.\/([^"']+\.js)["']/g)].map(m => m[1]);
+          const missing = refs.filter(ref => !fs.existsSync(ref));
+          console.log(`Script refs: ${refs.length}`);
+          if (missing.length) {
+            console.error(`Missing script refs: ${missing.join(', ')}`);
+            process.exit(1);
+          }
+          console.log('All index.html script references exist.');
+          NODE
