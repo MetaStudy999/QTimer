@@ -57,13 +57,19 @@ http://localhost:8080
 bash scripts/stop-wsl.sh
 ```
 
-문제은행만 별도로 감사하려면 Node.js가 있는 환경에서 다음을 실행합니다.
+문제은행 QA를 개별 실행하려면 Node.js가 있는 환경에서 다음을 실행합니다.
 
 ```bash
+# Gate 1: 수량 / 기본 레코드 / 중복 / 스크립트 로드
 node scripts/audit-question-bank.mjs
+
+# Gate 2: Chapter 연속성 / ID-문제번호 / 원본 링크 / 정답 출처 / 중복 문제문
+node scripts/qa-question-bank.mjs
 ```
 
-정상 기준은 **전체 973문항 / 중복 0 / 잘못된 레코드 0 / 스크립트 로드 오류 0**입니다.
+`bash scripts/check-wsl.sh`는 두 Gate를 모두 연속 실행합니다.
+
+Gate 1 정상 기준은 **전체 973문항 / 중복 0 / 잘못된 레코드 0 / 스크립트 로드 오류 0**입니다. Gate 2에서는 구조적 오류가 0이어야 하며, 정답 출처 불일치나 동일 문제문 중복 후보는 `Manual review queue`로 별도 표시합니다.
 
 자세한 내용은 `docs/dev-wsl.md`와 `docs/implementation/question-bank-baseline.md`를 참고합니다.
 
@@ -89,7 +95,7 @@ node scripts/audit-question-bank.mjs
 - `docs/spec/data-model.md`: 데이터 모델
 - `docs/spec/ui-spec.md`: UI/UX 명세
 - `docs/dev-wsl.md`: Windows 11 Pro + WSL2 Ubuntu 24.04 로컬 실행 가이드
-- `docs/implementation/question-bank-baseline.md`: 과목별 문제 수·Chapter 범위·무결성 기준
+- `docs/implementation/question-bank-baseline.md`: 과목별 문제 수·Chapter 범위·2단계 QA 기준
 - `docs/decisions/`: 주요 설계 결정 기록(ADR)
 - `docs/backlog.md`: v0.1 이후 후보
 
