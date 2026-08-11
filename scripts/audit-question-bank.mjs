@@ -24,7 +24,22 @@ function dataScript(rel) {
   return /^(chapter\d|subject\d{2}-ch).+\.js$/.test(rel);
 }
 
-const context = vm.createContext({ console, QUESTIONS: [] });
+// Subject 1 batch scripts contain a small amount of browser-state maintenance
+// after pushing their question arrays. The audit does not need localStorage or UI,
+// but it must provide the same globals so those scripts can finish successfully.
+const auditState = {
+  currentRoundIds: [],
+  currentIndex: 0,
+  mode: 'rapid'
+};
+const context = vm.createContext({
+  console,
+  QUESTIONS: [],
+  state: auditState,
+  saveState: () => {},
+  renderDashboardV01: () => {}
+});
+
 const loadedFiles = [];
 const errors = [];
 
@@ -45,6 +60,7 @@ try {
   const match = app.match(/const QUESTIONS\s*=\s*(\[[\s\S]*?\n\]);\s*\n\s*const STORAGE_KEY/);
   if (!match) throw new Error('Could not locate initial QUESTIONS array in app.js');
   vm.runInContext(`QUESTIONS = ${match[1]};`, context, { filename: 'app.js#QUESTIONS' });
+  context.state.currentRoundIds = context.QUESTIONS.map(q => q.id);
   loadedFiles.push('app.js#QUESTIONS');
 } catch (error) {
   errors.push(`app.js: ${error.name}: ${error.message}`);
@@ -96,14 +112,12 @@ for (const [index, q] of questions.entries()) {
   if (!q.sourceImageUrl) invalid.push(`${q.id}: missing sourceImageUrl`);
 }
 
-console.log('\nQTimer question-bank audit');
-console.log('='.repeat(64));
+console.log('\n# QTimer question-bank audit\n');
 for (const [key, spec] of Object.entries(EXPECTED)) {
   const actual = counts[key];
-  const mark = actual === spec.count ? 'OK' : 'FAIL';
-  console.log(`${mark.padEnd(4)} ${spec.name.padEnd(22)} ${String(actual).padStart(4)} / ${spec.count}`);
+  const mark = actual === spec.count ? 'OK  ' : 'FAIL';
+  console.log(`${mark} ${spec.name.padEnd(22)} ${String(actual).padStart(4)} / ${spec.count}`);
 }
-console.log('-'.repeat(64));
 console.log(`${questions.length === EXPECTED_TOTAL ? 'OK  ' : 'FAIL'} 전체 문제 ${questions.length} / ${EXPECTED_TOTAL}`);
 console.log(`Loaded data scripts: ${loadedFiles.length}`);
 console.log(`Duplicate IDs: ${duplicateIds.length}`);
