@@ -14,6 +14,13 @@
     verificationNote: "원본 3-7 하단 정답 ② 및 DISTINCT 독립 풀이 일치"
   });
 
+  const q32 = byId.get('sujebi-2026-db-build-ch01-32');
+  if (q32) Object.assign(q32, {
+    independentVerified: true,
+    independentVerifiedAt: "2026-08-11",
+    verificationNote: "원본 3-12 하단 정답 ④. 사원 5행에 WHERE 없는 SELECT 급여 → 5튜플로 독립 풀이 일치"
+  });
+
   const q44 = byId.get('sujebi-2026-db-build-ch02-44');
   if (q44) Object.assign(q44, {
     questionText: "학생 테이블은 (학번,학과,주소) = (1000,전산,서울), (2000,전기,경기), (3000,전자,경기), (4000,전산,경기), (5000,전자,서울)이다. 성적 테이블의 (학번,과목이름)은 (1000,자료구조), (2000,DB), (3000,자료구조), (3000,DB), (4000,DB), (4000,운영체제), (5000,운영체제)이다. 다음 SQL의 결과는? `SELECT 과목이름 FROM 성적 WHERE EXISTS (SELECT 학번 FROM 학생 WHERE 학생.학번=성적.학번 AND 학생.학과 IN ('전산','전기') AND 학생.주소='경기');`",
