@@ -1,7 +1,8 @@
 // QTimer v0.1 local learning-data backup / restore.
 (function(){
   const SNAPSHOT_KEY = `${STORAGE_KEY}-preimport`;
-  const SETTINGS_KEY = "qtimer-settings-v1";
+  const SETTINGS_KEY = "qtimer-settings-v2";
+  const LEGACY_SETTINGS_KEY = "qtimer-settings-v1";
   const SETTINGS_SNAPSHOT_KEY = `${SETTINGS_KEY}-preimport`;
 
   function currentAttemptCount(){
@@ -12,14 +13,19 @@
     return value && typeof value === "object" && !Array.isArray(value);
   }
 
+  function readStoredSettings(){
+    for (const key of [SETTINGS_KEY, LEGACY_SETTINGS_KEY]) {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key));
+        if (validObject(parsed)) return parsed;
+      } catch {}
+    }
+    return null;
+  }
+
   function currentSettings(){
     if (globalThis.QTIMER_SETTINGS?.get) return globalThis.QTIMER_SETTINGS.get();
-    try {
-      const parsed = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-      return validObject(parsed) ? parsed : null;
-    } catch {
-      return null;
-    }
+    return readStoredSettings();
   }
 
   function exportPayload(){
@@ -81,7 +87,7 @@
 
     const currentSnapshot = localStorage.getItem(STORAGE_KEY);
     if (currentSnapshot) localStorage.setItem(SNAPSHOT_KEY, currentSnapshot);
-    const currentSettingsSnapshot = localStorage.getItem(SETTINGS_KEY);
+    const currentSettingsSnapshot = localStorage.getItem(SETTINGS_KEY) || localStorage.getItem(LEGACY_SETTINGS_KEY);
     if (currentSettingsSnapshot) localStorage.setItem(SETTINGS_SNAPSHOT_KEY, currentSettingsSnapshot);
 
     const imported = {...defaultState, ...payload.state};
