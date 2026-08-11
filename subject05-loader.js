@@ -16,3 +16,6 @@ document.write('<script src="./subject05-ch03-25-32.js"><\/script>');
 document.write('<script src="./subject05-ch03-33-35.js"><\/script>');
 document.write('<script src="./subject05-ch04-01-03.js"><\/script>');
 document.write('<script src="./subject05-ch04-04-11.js"><\/script>');
+document.write('<script src="./subject05-ch04-12-29.js"><\/script>');
+document.write('<script src="./subject05-ch04-30-44.js"><\/script>');
+document.write('<script src="./subject05-ch05-01-14.js"><\/script>');
