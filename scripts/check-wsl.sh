@@ -32,12 +32,18 @@ fi
 if command -v node >/dev/null 2>&1; then
   ok "node: $(node --version)"
   if node scripts/audit-question-bank.mjs; then
-    ok "문제은행 무결성 감사 통과"
+    ok "문제은행 수량/기본 무결성 감사 통과"
   else
-    fail "문제은행 무결성 감사 실패"
+    fail "문제은행 수량/기본 무결성 감사 실패"
+  fi
+
+  if node scripts/qa-question-bank.mjs; then
+    ok "문제은행 심층 QA 통과"
+  else
+    fail "문제은행 심층 QA 실패"
   fi
 else
-  warn "node가 없어 문제은행 자동 감사를 생략합니다. 필요 시: node scripts/audit-question-bank.mjs"
+  warn "node가 없어 문제은행 자동 감사를 생략합니다. 필요 시: node scripts/audit-question-bank.mjs && node scripts/qa-question-bank.mjs"
 fi
 
 if [[ -f "$PID_FILE" ]]; then
