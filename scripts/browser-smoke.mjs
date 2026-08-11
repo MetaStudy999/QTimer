@@ -146,13 +146,84 @@ try {
   assert(timeoutAttempt?.timedOut === true, 'Hard timer did not record a timeout attempt');
   assert(timeoutAttempt?.withinLimit === false, 'Timed-out attempt should be outside the limit');
 
+  // Cancel any pending auto-advance from the hard-timeout test before Dapchigi starts.
+  await page.reload({ waitUntil: 'networkidle0', timeout: 30_000 });
+  await page.waitForSelector('#dapchigiPanel', { timeout: 10_000 });
+  const regularAttemptsBeforeDapchigi = await page.evaluate(() => state.attempts.length);
+
+  await page.select('#modeSelect', 'dapchigi');
+  await page.waitForFunction(() => state.mode === 'dapchigi' && document.querySelector('#dapchigiPanel')?.hidden === false);
+
+  await page.select('#dapSubject', 's3');
+  await page.select('#dapChapter', 'ch02');
+  await page.click('#dapApplyScope');
+  await page.waitForFunction(() => state.currentRoundIds.length === 52 && state.dapchigiV1?.step === 'preview');
+
+  const dapScope = await page.evaluate(() => ({
+    count: state.currentRoundIds.length,
+    allSubject3Ch02: state.currentRoundIds.every(id => id.startsWith('sujebi-2026-db-build-ch02-')),
+    step: state.dapchigiV1.step,
+    answerVisible: !document.querySelector('#dapAnswerCard').hidden,
+    questionHidden: document.querySelector('#questionText').closest('article').hidden
+  }));
+  assert(dapScope.count === 52 && dapScope.allSubject3Ch02, 'Dapchigi Subject 3 Ch02 range filter is incorrect');
+  assert(dapScope.step === 'preview' && dapScope.answerVisible && dapScope.questionHidden, 'Dapchigi answer-preview stage is incorrect');
+
+  await page.keyboard.press('Space');
+  await page.waitForFunction(() => state.dapchigiV1?.step === 'question');
+  const questionStage = await page.evaluate(() => ({
+    answerHidden: document.querySelector('#dapAnswerCard').hidden,
+    questionHidden: document.querySelector('#questionText').closest('article').hidden
+  }));
+  assert(questionStage.answerHidden && !questionStage.questionHidden, 'Dapchigi question-recall stage leaked the answer or hid the question');
+
+  await page.keyboard.press('Space');
+  await page.waitForFunction(() => state.dapchigiV1?.step === 'mark');
+  const blankCount = await page.$$eval('.choice.dap-blank', elements => elements.length);
+  assert(blankCount > 0, 'Dapchigi mark stage did not create a recall blank');
+
+  await page.keyboard.press('Space');
+  await page.waitForFunction(() => state.dapchigiV1?.step === 'reveal');
+  const revealStage = await page.evaluate(() => ({
+    answerVisible: !document.querySelector('#dapAnswerCard').hidden,
+    evalVisible: !document.querySelector('#dapEvalRow').hidden
+  }));
+  assert(revealStage.answerVisible && revealStage.evalVisible, 'Dapchigi reveal/evaluation stage is incomplete');
+
+  await page.keyboard.press('a');
+  await page.waitForFunction(() => state.dapchigiV1?.attempts?.length === 1 && state.dapchigiV1?.step === 'preview');
+  const dapRecorded = await page.evaluate(() => ({
+    rating: state.dapchigiV1.attempts.at(-1)?.rating,
+    attemptMode: state.dapchigiV1.attempts.at(-1)?.attemptMode,
+    regularAttempts: state.attempts.length,
+    index: state.currentIndex,
+    roundSize: state.currentRoundIds.length
+  }));
+  assert(dapRecorded.rating === 'a' && dapRecorded.attemptMode === 'dapchigi', 'Dapchigi A self-evaluation was not recorded');
+  assert(dapRecorded.regularAttempts === regularAttemptsBeforeDapchigi, 'Assisted Dapchigi evaluation polluted normal exam attempts');
+  assert(dapRecorded.index === 1 && dapRecorded.roundSize === 52, 'Dapchigi did not advance within the selected range');
+
+  await page.reload({ waitUntil: 'networkidle0', timeout: 30_000 });
+  await page.waitForFunction(() => state.mode === 'dapchigi' && state.dapchigiV1?.attempts?.length === 1 && document.querySelector('#dapchigiPanel')?.hidden === false);
+  const dapPersisted = await page.evaluate(() => ({
+    mode: state.mode,
+    count: state.currentRoundIds.length,
+    rating: state.dapchigiV1.attempts.at(-1)?.rating,
+    subject: state.dapchigiV1.subject,
+    chapter: state.dapchigiV1.chapter
+  }));
+  assert(dapPersisted.mode === 'dapchigi', 'Dapchigi mode was not restored');
+  assert(dapPersisted.count === 52 && dapPersisted.subject === 's3' && dapPersisted.chapter === 'ch02', 'Dapchigi scope was not restored');
+  assert(dapPersisted.rating === 'a', 'Dapchigi self-evaluation history was not restored');
+
   assert(pageErrors.length === 0, `Browser page errors: ${pageErrors.join(' | ')}`);
   assert(failedScripts.length === 0, `JavaScript load failures: ${failedScripts.join(' | ')}`);
 
   console.log('# QTimer browser smoke');
   console.log(`Questions: ${questionCount}`);
   console.log(`Subject 5 label: ${subjectMeta}`);
-  console.log('PASS: submit / undo / weak mode / persistence / pause / hard timeout');
+  console.log('Dapchigi: S3 Ch02 52 questions / Space stages / A rating / persistence PASS');
+  console.log('PASS: submit / undo / weak mode / persistence / pause / hard timeout / dapchigi');
 } finally {
   await browser.close();
 }
