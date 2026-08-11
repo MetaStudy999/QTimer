@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "if [ \"$VERCEL_PROJECT_ID\" = \"prj_kcP6NyiaDkumXf0Wm3bjLhUkJJSv\" ]; then echo 'QTimer: duplicate preview project ignored'; exit 0; fi; exit 1"
+}
