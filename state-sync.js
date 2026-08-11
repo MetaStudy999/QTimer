@@ -1,6 +1,80 @@
 // QTimer v0.1 question-bank/state synchronization.
 // Keeps attempts intact while reconciling navigation with the current question bank.
 
+// Data-integrity guard: normalize exact duplicate IDs globally and enforce the
+// verified Subject 3 chapter ranges before any dashboard/state calculation.
+(function normalizeQuestionBankIntegrity(){
+  const s3Max = {1:33, 2:52, 3:73, 4:30, 5:3}; // 191 verified questions
+  const ids = new Set();
+  const s3Logical = new Set();
+  const normalized = [];
+  const removed = [];
+
+  for (const q of QUESTIONS) {
+    if (!q || !q.id) {
+      removed.push({reason:"missing_id", id:q?.id || null});
+      continue;
+    }
+    if (ids.has(q.id)) {
+      removed.push({reason:"duplicate_id", id:q.id});
+      continue;
+    }
+
+    if (q.id.startsWith("sujebi-2026-db-build-")) {
+      const match = q.id.match(/^sujebi-2026-db-build-ch(\d{2})-(\d{2})$/);
+      if (!match) {
+        removed.push({reason:"s3_noncanonical_id", id:q.id});
+        continue;
+      }
+      const chapter = Number(match[1]);
+      const number = Number(match[2]);
+      const max = s3Max[chapter];
+      const key = `${chapter}-${number}`;
+      if (!max || number < 1 || number > max) {
+        removed.push({reason:"s3_out_of_range", id:q.id, chapter, number});
+        continue;
+      }
+      if (s3Logical.has(key)) {
+        removed.push({reason:"s3_duplicate_logical", id:q.id, key});
+        continue;
+      }
+      s3Logical.add(key);
+    }
+
+    ids.add(q.id);
+    normalized.push(q);
+  }
+
+  if (normalized.length !== QUESTIONS.length) QUESTIONS.splice(0, QUESTIONS.length, ...normalized);
+
+  const expectedS3 = [];
+  for (const [chapterText,max] of Object.entries(s3Max)) {
+    const chapter = Number(chapterText);
+    for (let number=1; number<=max; number+=1) expectedS3.push(`${chapter}-${number}`);
+  }
+  const s3Missing = expectedS3.filter(key => !s3Logical.has(key));
+
+  const prefixCounts = {
+    s1: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-sw-design-")).length,
+    s2: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-sw-dev-")).length,
+    s3: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-db-build-")).length,
+    s4: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-prog-lang-")).length,
+    s5: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-system-mgmt-") || q.id.startsWith("sujebi-2026-system-build-")).length
+  };
+
+  window.QTIMER_BANK_AUDIT = {
+    total: QUESTIONS.length,
+    prefixCounts,
+    expectedCurrent: {s1:221, s2:158, s3:191, s4:208, s5:145, total:923},
+    removed,
+    s3Missing
+  };
+
+  if (removed.length) console.warn("[QTimer] removed invalid/duplicate question entries", removed);
+  if (s3Missing.length) console.error("[QTimer] Subject 3 missing canonical questions", s3Missing);
+  console.info("[QTimer] bank audit", window.QTIMER_BANK_AUDIT);
+})();
+
 function buildQuestionBankVersion(){
   let hash = 5381;
   for (const id of QUESTIONS.map(q => q.id)) {
