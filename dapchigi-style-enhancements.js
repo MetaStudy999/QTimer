@@ -28,3 +28,23 @@
     document.head.appendChild(style);
   }
 })();
+
+// Load the first QTimer Design System vertical slice only after Dapchigi is ready.
+// This keeps the stable app/data boot sequence untouched and makes the layer easy to roll back.
+(function loadQTimerStudyDesignSystemV1(){
+  if (!document.querySelector('link[data-qtimer-design="v1"]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = './qtimer-design-system-v1.css';
+    link.dataset.qtimerDesign = 'v1';
+    document.head.appendChild(link);
+  }
+
+  if (!document.querySelector('script[data-qtimer-feature="study-shell-v1"]')) {
+    const script = document.createElement('script');
+    script.src = './study-shell-v1.js';
+    script.dataset.qtimerFeature = 'study-shell-v1';
+    script.defer = false;
+    document.body.appendChild(script);
+  }
+})();
