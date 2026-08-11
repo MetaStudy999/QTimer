@@ -4,6 +4,7 @@ const QTIMER_SUBJECT_CONTEXT = [
   {prefix:"sujebi-2026-sw-dev-", label:"소프트웨어 개발"},
   {prefix:"sujebi-2026-db-build-", label:"데이터베이스 구축"},
   {prefix:"sujebi-2026-prog-lang-", label:"프로그래밍 언어 활용"},
+  {prefix:"sujebi-2026-system-mgmt-", label:"정보시스템 구축관리"},
   {prefix:"sujebi-2026-system-build-", label:"정보시스템 구축관리"}
 ];
 
