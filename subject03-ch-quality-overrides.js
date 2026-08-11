@@ -3,6 +3,15 @@
 // questions can be solved in QTimer without opening the photographed source page.
 (function applySubject03QualityOverrides(){
   const byId = new Map(QUESTIONS.map(q => [q.id, q]));
+  const markVerified = (id, note) => {
+    const q = byId.get(id);
+    if (!q) return;
+    Object.assign(q, {
+      independentVerified: true,
+      independentVerifiedAt: "2026-08-11",
+      verificationNote: note
+    });
+  };
 
   const q11 = byId.get('sujebi-2026-db-build-ch01-11');
   if (q11) Object.assign(q11, {
@@ -14,19 +23,8 @@
     verificationNote: "원본 3-7 하단 정답 ② 및 DISTINCT 독립 풀이 일치"
   });
 
-  const q32 = byId.get('sujebi-2026-db-build-ch01-32');
-  if (q32) Object.assign(q32, {
-    independentVerified: true,
-    independentVerifiedAt: "2026-08-11",
-    verificationNote: "원본 3-12 하단 정답 ④. 사원 5행에 WHERE 없는 SELECT 급여 → 5튜플로 독립 풀이 일치"
-  });
-
-  const q42 = byId.get('sujebi-2026-db-build-ch02-42');
-  if (q42) Object.assign(q42, {
-    independentVerified: true,
-    independentVerifiedAt: "2026-08-11",
-    verificationNote: "원본 3-25 하단 정답 ④. 자료구조→책번호 222→도서가격 25,000으로 독립 SQL 풀이 일치"
-  });
+  markVerified('sujebi-2026-db-build-ch01-32', "원본 3-12 하단 정답 ④. 사원 5행에 WHERE 없는 SELECT 급여 → 5튜플로 독립 풀이 일치");
+  markVerified('sujebi-2026-db-build-ch02-42', "원본 3-25 하단 정답 ④. 자료구조→책번호 222→도서가격 25,000으로 독립 SQL 풀이 일치");
 
   const q44 = byId.get('sujebi-2026-db-build-ch02-44');
   if (q44) Object.assign(q44, {
@@ -53,4 +51,8 @@
     independentVerifiedAt: "2026-08-11",
     verificationNote: "문항이 3-26~3-27에 걸침. 원본 하단 정답 ② 및 서브쿼리 독립 풀이 일치"
   });
+
+  markVerified('sujebi-2026-db-build-ch02-48', "원본 3-28 하단 정답 ③. DROP VIEW V_1 CASCADE는 V_1을 참조하는 V_2까지 연쇄 삭제하므로 독립 SQL 해석 일치");
+  markVerified('sujebi-2026-db-build-ch02-49', "원본 3-28 하단 정답 ④. R={1,3}, S={1,2}의 UNION ALL은 중복 제거 없이 1,3,1,2를 반환하므로 독립 SQL 해석 일치");
+  markVerified('sujebi-2026-db-build-ch02-51', "원본 3-29 하단 정답 ③. 김철수→R2 학번 4000→R1 전기과·4000으로 독립 서브쿼리 풀이 일치");
 })();
