@@ -25,3 +25,14 @@
     undoLastAttemptAndRestoreQuestion();
   }, { capture: true });
 })();
+
+// Feature layers that need the complete 973-question bank must initialize after every
+// subject data script and compatibility wrapper has loaded. Keep SOURCE BANK immutable.
+(function loadPostBankFeatures(){
+  if (document.querySelector('script[data-qtimer-feature="dapchigi-v1"]')) return;
+  const script = document.createElement("script");
+  script.src = "./dapchigi-v1.js";
+  script.dataset.qtimerFeature = "dapchigi-v1";
+  script.defer = false;
+  document.body.appendChild(script);
+})();
