@@ -1,78 +1,132 @@
 // QTimer v0.1 question-bank/state synchronization.
 // Keeps attempts intact while reconciling navigation with the current question bank.
 
-// Data-integrity guard: normalize exact duplicate IDs globally and enforce the
-// verified Subject 3 chapter ranges before any dashboard/state calculation.
+// Data-integrity guard. It runs after all question scripts and before dashboard/state
+// calculations, so invalid ranges or logical duplicates cannot inflate counts.
 (function normalizeQuestionBankIntegrity(){
-  const s3Max = {1:33, 2:52, 3:73, 4:30, 5:3}; // 191 verified questions
-  const ids = new Set();
-  const s3Logical = new Set();
+  const structured = [
+    {
+      key:"s2", prefixes:["sujebi-2026-sw-dev-"],
+      ranges:{1:[[1,24]],2:[[1,19]],3:[[1,36]],4:[[1,64]],5:[[1,12]],6:[[1,3]]}
+    },
+    {
+      key:"s3", prefixes:["sujebi-2026-db-build-"],
+      ranges:{1:[[1,33]],2:[[1,52]],3:[[1,73]],4:[[1,30]],5:[[1,3]]}
+    },
+    {
+      key:"s4", prefixes:["sujebi-2026-prog-lang-"],
+      // Chapter 02 questions 77~79 are intentionally absent until source images are verified.
+      ranges:{1:[[1,6]],2:[[1,76],[80,83]],3:[[1,115]],4:[[1,7]]}
+    },
+    {
+      key:"s5", prefixes:["sujebi-2026-system-mgmt-","sujebi-2026-system-build-"],
+      // Current verified ingestion boundary. Extend these ranges only when new source pages are added.
+      ranges:{1:[[1,58]],2:[[1,41]],3:[[1,35]],4:[[1,11]]}
+    }
+  ];
+
+  const expectedCurrent = {s1:221,s2:158,s3:191,s4:208,s5:145,total:923};
+  const globalIds = new Set();
+  const logicalSeen = Object.fromEntries(structured.map(s => [s.key,new Set()]));
   const normalized = [];
   const removed = [];
 
+  function findStructured(id){
+    for (const subject of structured) {
+      for (const prefix of subject.prefixes) {
+        if (!id.startsWith(prefix)) continue;
+        const suffix = id.slice(prefix.length);
+        const m = suffix.match(/^ch(\d{2})-(\d{2})$/);
+        return {subject,prefix,match:m};
+      }
+    }
+    return null;
+  }
+
+  function allowed(subject,chapter,number){
+    const ranges = subject.ranges[chapter] || [];
+    return ranges.some(([start,end]) => number >= start && number <= end);
+  }
+
   for (const q of QUESTIONS) {
     if (!q || !q.id) {
-      removed.push({reason:"missing_id", id:q?.id || null});
+      removed.push({reason:"missing_id",id:q?.id || null});
       continue;
     }
-    if (ids.has(q.id)) {
-      removed.push({reason:"duplicate_id", id:q.id});
+    if (globalIds.has(q.id)) {
+      removed.push({reason:"duplicate_id",id:q.id});
       continue;
     }
 
-    if (q.id.startsWith("sujebi-2026-db-build-")) {
-      const match = q.id.match(/^sujebi-2026-db-build-ch(\d{2})-(\d{2})$/);
-      if (!match) {
-        removed.push({reason:"s3_noncanonical_id", id:q.id});
+    const parsed = findStructured(q.id);
+    if (parsed) {
+      if (!parsed.match) {
+        removed.push({reason:`${parsed.subject.key}_noncanonical_id`,id:q.id});
         continue;
       }
-      const chapter = Number(match[1]);
-      const number = Number(match[2]);
-      const max = s3Max[chapter];
-      const key = `${chapter}-${number}`;
-      if (!max || number < 1 || number > max) {
-        removed.push({reason:"s3_out_of_range", id:q.id, chapter, number});
+      const chapter = Number(parsed.match[1]);
+      const number = Number(parsed.match[2]);
+      if (!allowed(parsed.subject,chapter,number)) {
+        removed.push({reason:`${parsed.subject.key}_out_of_range`,id:q.id,chapter,number});
         continue;
       }
-      if (s3Logical.has(key)) {
-        removed.push({reason:"s3_duplicate_logical", id:q.id, key});
+      const logicalKey = `${chapter}-${number}`;
+      if (logicalSeen[parsed.subject.key].has(logicalKey)) {
+        removed.push({reason:`${parsed.subject.key}_duplicate_logical`,id:q.id,logicalKey});
         continue;
       }
-      s3Logical.add(key);
+      logicalSeen[parsed.subject.key].add(logicalKey);
     }
 
-    ids.add(q.id);
+    globalIds.add(q.id);
     normalized.push(q);
   }
 
-  if (normalized.length !== QUESTIONS.length) QUESTIONS.splice(0, QUESTIONS.length, ...normalized);
+  if (normalized.length !== QUESTIONS.length) QUESTIONS.splice(0,QUESTIONS.length,...normalized);
 
-  const expectedS3 = [];
-  for (const [chapterText,max] of Object.entries(s3Max)) {
-    const chapter = Number(chapterText);
-    for (let number=1; number<=max; number+=1) expectedS3.push(`${chapter}-${number}`);
+  const missing = {};
+  for (const subject of structured) {
+    const subjectMissing = [];
+    for (const [chapterText,ranges] of Object.entries(subject.ranges)) {
+      const chapter = Number(chapterText);
+      for (const [start,end] of ranges) {
+        for (let number=start; number<=end; number+=1) {
+          const key = `${chapter}-${number}`;
+          if (!logicalSeen[subject.key].has(key)) {
+            subjectMissing.push(`ch${String(chapter).padStart(2,"0")}-${String(number).padStart(2,"0")}`);
+          }
+        }
+      }
+    }
+    missing[subject.key] = subjectMissing;
   }
-  const s3Missing = expectedS3.filter(key => !s3Logical.has(key));
 
   const prefixCounts = {
-    s1: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-sw-design-")).length,
-    s2: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-sw-dev-")).length,
-    s3: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-db-build-")).length,
-    s4: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-prog-lang-")).length,
-    s5: QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-system-mgmt-") || q.id.startsWith("sujebi-2026-system-build-")).length
+    s1:QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-sw-design-")).length,
+    s2:QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-sw-dev-")).length,
+    s3:QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-db-build-")).length,
+    s4:QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-prog-lang-")).length,
+    s5:QUESTIONS.filter(q => q.id.startsWith("sujebi-2026-system-mgmt-") || q.id.startsWith("sujebi-2026-system-build-")).length
   };
+
+  const mismatches = Object.entries(expectedCurrent)
+    .filter(([key]) => key !== "total")
+    .filter(([key,expected]) => prefixCounts[key] !== expected)
+    .map(([key,expected]) => ({key,expected,actual:prefixCounts[key]}));
 
   window.QTIMER_BANK_AUDIT = {
-    total: QUESTIONS.length,
+    total:QUESTIONS.length,
     prefixCounts,
-    expectedCurrent: {s1:221, s2:158, s3:191, s4:208, s5:145, total:923},
-    removed,
-    s3Missing
+    expectedCurrent,
+    mismatches,
+    missing,
+    removed
   };
 
-  if (removed.length) console.warn("[QTimer] removed invalid/duplicate question entries", removed);
-  if (s3Missing.length) console.error("[QTimer] Subject 3 missing canonical questions", s3Missing);
-  console.info("[QTimer] bank audit", window.QTIMER_BANK_AUDIT);
+  if (removed.length) console.warn("[QTimer] removed invalid/duplicate question entries",removed);
+  if (Object.values(missing).some(list => list.length)) console.error("[QTimer] missing canonical question entries",missing);
+  if (mismatches.length || QUESTIONS.length !== expectedCurrent.total) console.error("[QTimer] question-bank count mismatch",window.QTIMER_BANK_AUDIT);
+  else console.info("[QTimer] question-bank counts verified",window.QTIMER_BANK_AUDIT);
 })();
 
 function buildQuestionBankVersion(){
@@ -105,7 +159,7 @@ function syncQuestionBankState(){
 
   const preservedIndex = previousQuestionId ? state.currentRoundIds.indexOf(previousQuestionId) : -1;
   if (preservedIndex >= 0) state.currentIndex = preservedIndex;
-  else state.currentIndex = Math.max(0, Math.min(previousIndex, state.currentRoundIds.length - 1));
+  else state.currentIndex = Math.max(0,Math.min(previousIndex,state.currentRoundIds.length - 1));
 
   state.questionBankVersion = nextVersion;
   saveState();
@@ -120,7 +174,7 @@ function renderHeaderContext(){
     els.progressText.textContent = `풀이 ${attempted} / ${QUESTIONS.length}`;
   } else {
     const total = state.currentRoundIds.length || QUESTIONS.length;
-    const position = total ? Math.min(state.currentIndex + 1, total) : 0;
+    const position = total ? Math.min(state.currentIndex + 1,total) : 0;
     els.progressText.textContent = `현재 ${position} / ${total}`;
   }
   els.weakCount.textContent = `취약 ${weak}`;
