@@ -81,49 +81,84 @@ function subjectOf(id = '') {
   return '미분류';
 }
 
-const RULES = [
-  {
-    key: 'code', label: '코드 실행', weight: 5,
-    re: /#include|printf\s*\(|scanf\s*\(|System\.out|public\s+static|\bclass\s+[A-Za-z_]|\bdef\s+[A-Za-z_]|print\s*\(|\bfor\s*\(|\bwhile\s*\(|\bswitch\s*\(|\bsizeof\b|\+\+|--|포인터|코드\s*(?:실행|결과)|프로그램\s*(?:실행|출력)|실행\s*결과|출력\s*결과/i
-  },
-  {
-    key: 'sql', label: 'SQL 실행', weight: 5,
-    re: /\bSELECT\b|\bFROM\b|\bWHERE\b|\bJOIN\b|GROUP\s+BY|\bHAVING\b|\bUNION\b|\bINTERSECT\b|\bMINUS\b|ALTER\s+TABLE|CREATE\s+VIEW|DROP\s+VIEW|서브쿼리|SQL\s*(?:문|구문|실행|결과)/i
-  },
-  {
-    key: 'network_calc', label: '네트워크 계산', weight: 5,
-    re: /CIDR|\/\d{1,2}(?:\D|$)|서브넷\s*마스크|서브넷으로|브로드캐스트\s*주소|Broadcast\s*주소|사용\s*가능(?:한)?\s*IP|네트워크\s*주소|Subnet-Zero|FLSM|VLSM/i
-  },
-  {
-    key: 'algorithm_calc', label: '계산/알고리즘', weight: 4,
-    re: /페이지\s*교체|\bLRU\b|\bLFU\b|\bNUR\b|\bSJF\b|\bHRN\b|Round\s*Robin|라운드\s*로빈|대기\s*시간|반환\s*시간|Turnaround|Waiting\s*Time|COCOMO|기능\s*점수|Function\s*Point|\bCPM\b|\bPERT\b|임계\s*경로|메모리\s*할당|Best\s*Fit|Worst\s*Fit|First\s*Fit|Degree.*Cardinality|Cardinality.*Degree/i
-  },
-  {
-    key: 'crypto', label: '암호/보안', weight: 3,
-    re: /\bRSA\b|\bAES\b|\bDES\b|\b3DES\b|\bSHA(?:-?\d+)?\b|\bMD5\b|Salt|Key\s*Stretching|공개키|개인키|대칭키|비대칭키|암호화|복호화|해시\s*(?:함수|알고리즘)/i
-  }
-];
+function questionText(q) {
+  return String(q?.questionText || '').replace(/\s+/g, ' ').trim();
+}
+
+function choiceText(q) {
+  return Array.isArray(q?.choices) ? q.choices.map(v => String(v)).join(' ') : '';
+}
 
 function combinedText(q) {
-  return [q.questionText, ...(Array.isArray(q.choices) ? q.choices : []), q.sourceExplanation, q.finalKey]
-    .filter(Boolean).join(' ');
+  return [questionText(q), choiceText(q), q.sourceExplanation, q.finalKey].filter(Boolean).join(' ');
+}
+
+function isCodeExecution(q) {
+  const qt = questionText(q);
+  const body = `${qt} ${choiceText(q)}`;
+  const explicitLanguage = /(?:다음\s+)?(?:C|C언어|JAVA|Java|Python|파이썬)\s*(?:프로그램|코드|에서)|프로그램의\s*(?:실행|출력)\s*결과|코드의\s*(?:실행|출력)\s*결과/i.test(qt);
+  const concreteSyntax = /#include|printf\s*\(|scanf\s*\(|System\.out|public\s+static\s+void|\bdef\s+[A-Za-z_]\w*\s*\(|print\s*\(|\bfor\s*\([^)]*;[^)]*;[^)]*\)|\bwhile\s*\([^)]*\)|\bswitch\s*\(|\bsizeof\s*\(|\bint\s+[A-Za-z_]\w*\s*=|\bchar\s+[A-Za-z_]\w*\s*=|\+\+|--|\*\s*[A-Za-z_]\w*\s*=\s*&/i.test(body);
+  return explicitLanguage || concreteSyntax;
+}
+
+function isSqlExecution(q) {
+  const qt = questionText(q);
+  const hasActualSelect = /\bSELECT\b[\s\S]*\bFROM\b/i.test(qt);
+  const explicitSql = /SQL\s*(?:문|구문|질의|실행|결과)|서브쿼리|CREATE\s+VIEW|DROP\s+VIEW|ALTER\s+TABLE|\bUNION(?:\s+ALL)?\b|\bINTERSECT\b|\bMINUS\b/i.test(qt);
+  return hasActualSelect || explicitSql;
+}
+
+function isNetworkCalculation(q) {
+  const qt = questionText(q);
+  const cidr = /(?:\d{1,3}\.){3}\d{1,3}\/\d{1,2}/.test(qt);
+  const subnetContext = /CIDR|서브넷\s*마스크|서브넷으로|브로드캐스트\s*주소|Broadcast\s*주소|사용\s*가능(?:한)?\s*IP|Subnet-Zero|FLSM|VLSM|네트워크\s*주소를\s*구/i.test(qt);
+  return cidr || subnetContext;
+}
+
+function isAlgorithmCalculation(q) {
+  const qt = questionText(q);
+  return /FCFS|FIFO\s*스케줄링|\bSJF\b|\bHRN\b|Round\s*Robin|라운드\s*로빈|평균\s*(?:대기|반환)시간|반환시간|Turnaround|Waiting\s*Time|페이지\s*교체|페이지\s*부재|\bLRU\b|\bLFU\b|\bNUR\b|메모리\s*할당|Best\s*Fit|Worst\s*Fit|First\s*Fit|COCOMO|기능\s*점수|Function\s*Point|\bCPM\b|\bPERT\b|임계\s*경로/i.test(qt);
+}
+
+function isCryptoRisk(q) {
+  const qt = questionText(q);
+  return /\bRSA\b|\bAES\b|\bDES\b|\b3DES\b|\bSHA(?:-?\d+)?\b|\bMD5\b|Salt|Key\s*Stretching|공개키|개인키|대칭키|비대칭키|비밀키\s*암호|암호화\s*키|복호화\s*키|해시\s*(?:함수|알고리즘)/i.test(qt);
 }
 
 function riskFor(q) {
   const text = combinedText(q);
+  const qt = questionText(q);
   const reasons = [];
   const categories = [];
   let score = 0;
 
-  for (const rule of RULES) {
-    if (rule.re.test(text)) {
-      score += rule.weight;
-      categories.push(rule.key);
-      reasons.push(`${rule.label}+${rule.weight}`);
-    }
+  if (isCodeExecution(q)) {
+    score += 5;
+    categories.push('code');
+    reasons.push('코드 실행+5');
+  }
+  if (isSqlExecution(q)) {
+    score += 5;
+    categories.push('sql');
+    reasons.push('SQL 실행+5');
+  }
+  if (isNetworkCalculation(q)) {
+    score += 5;
+    categories.push('network_calc');
+    reasons.push('네트워크 계산+5');
+  }
+  if (isAlgorithmCalculation(q)) {
+    score += 4;
+    categories.push('algorithm_calc');
+    reasons.push('계산/알고리즘+4');
+  }
+  if (isCryptoRisk(q)) {
+    score += 3;
+    categories.push('crypto');
+    reasons.push('암호/보안+3');
   }
 
-  const visualDependency = /다음\s*(?:그림|표|도표)|제시된\s*(?:R|S|테이블|릴레이션|그림|표)|①의\s*결과|②의\s*결과|③의\s*결과|④의\s*결과|실행\s*결과로\s*옳/i.test(text);
+  const visualDependency = /다음\s*(?:그림|표|도표)|제시된\s*(?:R|S|테이블|릴레이션|그림|표)|①의\s*결과|②의\s*결과|③의\s*결과|④의\s*결과|두\s*릴레이션.*결과|테이블.*실행\s*결과/i.test(qt);
   if (visualDependency) {
     score += 3;
     reasons.push('원본 도표/실행 의존+3');
@@ -143,7 +178,7 @@ function riskFor(q) {
   }
 
   const genericChoiceCount = Array.isArray(q.choices)
-    ? q.choices.filter(v => /^[①②③④⑤⑥⑦⑧⑨]|^[1-9]번?의?\s*결과|결과$/i.test(String(v).trim())).length
+    ? q.choices.filter(v => /^(?:①|②|③|④|⑤|⑥|⑦|⑧|⑨).*결과|^[1-9]번?의?\s*결과|^결과$/i.test(String(v).trim())).length
     : 0;
   if (genericChoiceCount >= 2) {
     score += 3;
@@ -173,7 +208,7 @@ for (const q of context.QUESTIONS) {
     number: q.sourceQuestionNo,
     answer: q.sourceAnswer,
     origin: origins.get(q.id) || 'unknown',
-    text: String(q.questionText || '').replace(/\s+/g, ' ').trim(),
+    text: questionText(q),
     ...risk
   });
 }
