@@ -1,0 +1,282 @@
+:root {
+  --qt-bg: var(--bg, #f5f7fa);
+  --qt-surface: var(--panel, #ffffff);
+  --qt-text: var(--text, #172033);
+  --qt-muted: var(--muted, #6a7485);
+  --qt-border: var(--border, #dce2ea);
+  --qt-primary: var(--accent, #315efb);
+  --qt-primary-soft: var(--accent-soft, #edf2ff);
+  --qt-success: var(--success, #177245);
+  --qt-warning: var(--warning, #8a5b00);
+  --qt-danger: var(--danger, #b3261e);
+
+  --qt-space-1: 4px;
+  --qt-space-2: 8px;
+  --qt-space-3: 12px;
+  --qt-space-4: 16px;
+  --qt-space-5: 24px;
+  --qt-space-6: 32px;
+
+  --qt-radius-sm: 8px;
+  --qt-radius-md: 12px;
+  --qt-radius-lg: 16px;
+  --qt-radius-pill: 999px;
+
+  --qt-motion-fast: 140ms;
+  --qt-motion-normal: 180ms;
+  --qt-read-width: 920px;
+  --qt-shell-width: 1440px;
+  --qt-line-height-study: 1.6;
+  --qt-action-dock-height: 64px;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--qt-primary) 55%, white);
+  outline-offset: 2px;
+}
+
+.qt-study-context {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--qt-space-3);
+  max-width: var(--qt-shell-width);
+  margin: var(--qt-space-3) auto 0;
+  padding: 10px 16px;
+  border: 1px solid var(--qt-border);
+  border-radius: var(--qt-radius-md);
+  background: color-mix(in srgb, var(--qt-surface) 96%, var(--qt-primary-soft));
+  color: var(--qt-text);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.qt-study-context-main,
+.qt-study-context-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.qt-study-context-main strong {
+  font-size: 14px;
+}
+
+.qt-study-context .qt-context-separator {
+  color: var(--qt-border);
+  user-select: none;
+}
+
+.qt-study-context .qt-context-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: var(--qt-radius-pill);
+  background: #eef1f5;
+  color: var(--qt-text);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.qt-study-context .qt-context-chip.primary {
+  background: var(--qt-primary-soft);
+  color: var(--qt-primary);
+}
+
+.qt-action-dock {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: min(720px, calc(100vw - 28px));
+  min-height: var(--qt-action-dock-height);
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--qt-border) 80%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--qt-surface) 94%, transparent);
+  box-shadow: 0 10px 30px rgba(16, 24, 40, .12);
+  backdrop-filter: blur(12px);
+  grid-template-columns: 1.25fr repeat(3, 1fr);
+  gap: 8px;
+}
+
+.qt-action-dock button {
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 1px solid var(--qt-border);
+  border-radius: 11px;
+  background: var(--qt-surface);
+  color: var(--qt-text);
+  font-weight: 850;
+}
+
+.qt-action-dock button .qt-key {
+  display: inline-flex;
+  min-width: 28px;
+  justify-content: center;
+  margin-right: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #eef1f5;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12px;
+}
+
+.qt-action-dock button[data-action="space"] {
+  background: var(--qt-primary);
+  border-color: var(--qt-primary);
+  color: white;
+}
+
+.qt-action-dock button[data-action="space"] .qt-key {
+  background: rgba(255, 255, 255, .18);
+}
+
+.qt-action-dock button[data-action="o"]:not(:disabled) {
+  border-color: color-mix(in srgb, var(--qt-success) 60%, var(--qt-border));
+}
+
+.qt-action-dock button[data-action="a"]:not(:disabled) {
+  border-color: color-mix(in srgb, var(--qt-warning) 60%, var(--qt-border));
+}
+
+.qt-action-dock button[data-action="x"]:not(:disabled) {
+  border-color: color-mix(in srgb, var(--qt-danger) 60%, var(--qt-border));
+}
+
+body.qt-focus-mode #studyView > .control-bar {
+  display: none !important;
+}
+
+body.qt-focus-mode #studyView > .session-summary {
+  display: none !important;
+}
+
+body.qt-focus-mode #studyView {
+  padding-bottom: calc(var(--qt-action-dock-height) + 36px);
+}
+
+body.qt-focus-mode .qt-study-context,
+body.qt-focus-mode .qt-action-dock {
+  display: flex;
+}
+
+body.qt-focus-mode .qt-action-dock {
+  display: grid;
+}
+
+body.qt-focus-mode #dapchigiPanel {
+  max-width: var(--qt-shell-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.qt-focus-mode .workspace {
+  display: block;
+  max-width: var(--qt-shell-width);
+  margin: 0 auto;
+  padding-top: 12px;
+}
+
+body.qt-focus-mode .question-pane {
+  min-height: auto;
+  max-width: min(var(--qt-read-width), calc(100vw - 48px));
+  margin: 0 auto;
+  padding: 24px 28px 30px;
+}
+
+body.qt-focus-mode .question-pane article {
+  max-width: var(--qt-read-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.qt-focus-mode #questionText,
+body.qt-focus-mode .choice,
+body.qt-focus-mode #dapAnswerValue {
+  line-height: var(--qt-line-height-study);
+}
+
+body.qt-focus-mode .app-header {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+body.qt-focus-mode .app-header > div:first-child p {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .qt-study-context {
+    margin: 8px 10px 0;
+    padding: 9px 11px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .qt-study-context-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  body.qt-focus-mode .question-pane {
+    max-width: calc(100vw - 20px);
+    padding: 18px 16px 24px;
+  }
+
+  body.qt-focus-mode .workspace {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .qt-action-dock {
+    width: calc(100vw - 16px);
+    bottom: 8px;
+    border-radius: 14px;
+    grid-template-columns: 1fr repeat(3, .9fr);
+  }
+
+  .qt-action-dock button {
+    min-width: 0;
+    min-height: 48px;
+    padding: 7px 5px;
+    font-size: 13px;
+  }
+
+  .qt-action-dock button .qt-key {
+    display: block;
+    width: max-content;
+    margin: 0 auto 2px;
+  }
+}
+
+@media (max-width: 460px) {
+  .qt-action-dock {
+    grid-template-columns: 1.2fr repeat(3, 1fr);
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .qt-action-dock button {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
