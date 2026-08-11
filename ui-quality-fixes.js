@@ -118,10 +118,22 @@
     renderQuestion();
   }
 
+  function loadDapchigiStyleEnhancements(){
+    if (document.querySelector('script[data-qtimer-feature="dapchigi-style-enhancements"]')) return;
+    const enhancement = document.createElement("script");
+    enhancement.src = "./dapchigi-style-enhancements.js";
+    enhancement.dataset.qtimerFeature = "dapchigi-style-enhancements";
+    enhancement.defer = false;
+    document.body.appendChild(enhancement);
+  }
+
   const script = document.createElement("script");
   script.src = "./dapchigi-v1.js";
   script.dataset.qtimerFeature = "dapchigi-v1";
   script.defer = false;
-  script.addEventListener("load", restoreSavedDapchigiScope, { once: true });
+  script.addEventListener("load", () => {
+    restoreSavedDapchigiScope();
+    loadDapchigiStyleEnhancements();
+  }, { once: true });
   document.body.appendChild(script);
 })();

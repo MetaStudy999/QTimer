@@ -149,6 +149,7 @@ try {
   // Cancel any pending auto-advance from the hard-timeout test before Dapchigi starts.
   await page.reload({ waitUntil: 'networkidle0', timeout: 30_000 });
   await page.waitForSelector('#dapchigiPanel', { timeout: 10_000 });
+  await page.waitForSelector('#dapchigiBoldHighlightStyles', { timeout: 10_000 });
   await page.click('#studyTab');
   await page.waitForSelector('.question-pane', { visible: true, timeout: 10_000 });
   const regularAttemptsBeforeDapchigi = await page.evaluate(() => state.attempts.length);
@@ -160,6 +161,24 @@ try {
   await page.select('#dapChapter', 'ch02');
   await page.click('#dapApplyScope');
   await page.waitForFunction(() => state.currentRoundIds.length === 52 && state.dapchigiV1?.step === 'preview');
+
+  const styleLabels = await page.evaluate(() => ({
+    questionAll: [...document.querySelector('#dapQuestionStyle').options].find(option => option.value === 'all-highlight')?.textContent,
+    questionKeyword: [...document.querySelector('#dapQuestionStyle').options].find(option => option.value === 'keyword-highlight')?.textContent,
+    answerAll: [...document.querySelector('#dapAnswerStyle').options].find(option => option.value === 'all-highlight')?.textContent,
+    answerKeyword: [...document.querySelector('#dapAnswerStyle').options].find(option => option.value === 'keyword-highlight')?.textContent,
+    answerMark: [...document.querySelector('#dapAnswerStyle').options].find(option => option.value === 'mark')?.textContent
+  }));
+  assert(styleLabels.questionAll === '전체 형광펜 + 볼드', 'Question full-highlight label was not upgraded');
+  assert(styleLabels.questionKeyword === '핵심어 형광펜 + 볼드', 'Question keyword-highlight label was not upgraded');
+  assert(styleLabels.answerAll === '전체 형광펜 + 볼드', 'Answer full-highlight label was not upgraded');
+  assert(styleLabels.answerKeyword === '핵심어 형광펜 + 볼드', 'Answer keyword-highlight label was not upgraded');
+  assert(styleLabels.answerMark === '답 마킹 + 볼드', 'Answer marking label was not upgraded');
+
+  await page.select('#dapAnswerStyle', 'mark');
+  await page.waitForFunction(() => document.querySelector('#dapAnswerValue mark.dap-highlight-answer'));
+  const answerMarkWeight = await page.$eval('#dapAnswerValue mark.dap-highlight-answer', element => Number.parseInt(getComputedStyle(element).fontWeight, 10));
+  assert(answerMarkWeight >= 700, `Dapchigi answer marking is not bold: ${answerMarkWeight}`);
 
   const dapScope = await page.evaluate(() => ({
     count: state.currentRoundIds.length,
@@ -178,6 +197,16 @@ try {
     questionHidden: document.querySelector('#questionText').closest('article').hidden
   }));
   assert(questionStage.answerHidden && !questionStage.questionHidden, 'Dapchigi question-recall stage leaked the answer or hid the question');
+
+  await page.select('#dapQuestionStyle', 'all-highlight');
+  await page.waitForFunction(() => document.querySelector('#questionText mark.dap-highlight-question'));
+  const allHighlightWeight = await page.$eval('#questionText mark.dap-highlight-question', element => Number.parseInt(getComputedStyle(element).fontWeight, 10));
+  assert(allHighlightWeight >= 700, `Dapchigi full highlight is not bold: ${allHighlightWeight}`);
+
+  await page.select('#dapQuestionStyle', 'keyword-highlight');
+  await page.waitForFunction(() => document.querySelector('#questionText mark.dap-highlight-question'));
+  const keywordHighlightWeight = await page.$eval('#questionText mark.dap-highlight-question', element => Number.parseInt(getComputedStyle(element).fontWeight, 10));
+  assert(keywordHighlightWeight >= 700, `Dapchigi keyword highlight is not bold: ${keywordHighlightWeight}`);
 
   await page.keyboard.press('Space');
   await page.waitForFunction(() => state.dapchigiV1?.step === 'mark');
@@ -224,6 +253,7 @@ try {
   console.log('# QTimer browser smoke');
   console.log(`Questions: ${questionCount}`);
   console.log(`Subject 5 label: ${subjectMeta}`);
+  console.log('Dapchigi styles: full highlight + bold / keyword highlight + bold / answer marking + bold PASS');
   console.log('Dapchigi: S3 Ch02 52 questions / Space stages / A rating / persistence PASS');
   console.log('PASS: submit / undo / weak mode / persistence / pause / hard timeout / dapchigi');
 } finally {
