@@ -22,11 +22,22 @@ cd "$ROOT_DIR"
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   BRANCH="$(git branch --show-current 2>/dev/null || true)"
   ok "Git 저장소 / branch=${BRANCH:-detached}"
-  if [[ "$BRANCH" != "feat/v0.1-mvp" ]]; then
-    warn "권장 작업 브랜치는 feat/v0.1-mvp 입니다."
+  if [[ "$BRANCH" != "work/data-ingest" ]]; then
+    warn "현재 대량 문제 등록/검증 권장 브랜치는 work/data-ingest 입니다."
   fi
 else
   fail "Git 저장소가 아닙니다."
+fi
+
+if command -v node >/dev/null 2>&1; then
+  ok "node: $(node --version)"
+  if node scripts/audit-question-bank.mjs; then
+    ok "문제은행 무결성 감사 통과"
+  else
+    fail "문제은행 무결성 감사 실패"
+  fi
+else
+  warn "node가 없어 문제은행 자동 감사를 생략합니다. 필요 시: node scripts/audit-question-bank.mjs"
 fi
 
 if [[ -f "$PID_FILE" ]]; then
