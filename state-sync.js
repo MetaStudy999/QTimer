@@ -20,12 +20,17 @@
     },
     {
       key:"s5", prefixes:["sujebi-2026-system-mgmt-","sujebi-2026-system-build-"],
-      // Current verified ingestion boundary. Extend these ranges only when new source pages are added.
-      ranges:{1:[[1,58]],2:[[1,41]],3:[[1,35]],4:[[1,11]]}
+      // Subject 5 source photos were verified through Chapter 05 question 14.
+      ranges:{1:[[1,58]],2:[[1,41]],3:[[1,35]],4:[[1,44]],5:[[1,14]]}
     }
   ];
 
-  const expectedCurrent = {s1:221,s2:158,s3:191,s4:208,s5:145,total:923};
+  // Verified/current means source image + answer area have been checked and data is loadable now.
+  const expectedCurrent = {s1:221,s2:158,s3:191,s4:208,s5:192,total:970};
+  // Logical full-book target additionally includes the known missing Subject 4 Ch02 Q77~79 source page.
+  const fullBookExpected = {s1:221,s2:158,s3:191,s4:211,s5:192,total:973};
+  const knownSourceGaps = {s4:["ch02-77","ch02-78","ch02-79"]};
+
   const globalIds = new Set();
   const logicalSeen = Object.fromEntries(structured.map(s => [s.key,new Set()]));
   const normalized = [];
@@ -118,13 +123,15 @@
     total:QUESTIONS.length,
     prefixCounts,
     expectedCurrent,
+    fullBookExpected,
+    knownSourceGaps,
     mismatches,
     missing,
     removed
   };
 
   if (removed.length) console.warn("[QTimer] removed invalid/duplicate question entries",removed);
-  if (Object.values(missing).some(list => list.length)) console.error("[QTimer] missing canonical question entries",missing);
+  if (Object.values(missing).some(list => list.length)) console.error("[QTimer] missing verified question entries",missing);
   if (mismatches.length || QUESTIONS.length !== expectedCurrent.total) console.error("[QTimer] question-bank count mismatch",window.QTIMER_BANK_AUDIT);
   else console.info("[QTimer] question-bank counts verified",window.QTIMER_BANK_AUDIT);
 })();
