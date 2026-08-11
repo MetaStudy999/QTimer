@@ -113,23 +113,26 @@ function riskFor(q) {
 }
 
 function queueItem(q, risk) {
-  return { id:q.id, subject:subjectOf(q.id), page:q.sourcePage, number:q.sourceQuestionNo, answer:q.sourceAnswer, origin:origins.get(q.id)||'unknown', text:questionText(q), ...risk };
+  return { id:q.id, subject:subjectOf(q.id), page:q.sourcePage, number:q.sourceQuestionNo, answer:q.sourceAnswer, origin:origins.get(q.id)||'unknown', text:questionText(q), reviewOutcome:q.reviewOutcome || null, ...risk };
 }
 
 const queue = [];
 const independentlyVerified = [];
+const reviewedWarnings = [];
 for (const q of context.QUESTIONS) {
   const risk = riskFor(q);
   if (!risk.priority) continue;
   const item = queueItem(q, risk);
   if (q.independentVerified === true) independentlyVerified.push(item);
+  else if (q.riskReviewed === true) reviewedWarnings.push(item);
   else queue.push(item);
 }
 
 const sorter = (a,b) => b.score-a.score || a.subject.localeCompare(b.subject,'ko') || String(a.page).localeCompare(String(b.page),undefined,{numeric:true});
-queue.sort(sorter); independentlyVerified.sort(sorter);
+queue.sort(sorter); independentlyVerified.sort(sorter); reviewedWarnings.sort(sorter);
 const byPriority = Object.fromEntries(['P0','P1','P2'].map(p => [p, queue.filter(v=>v.priority===p).length]));
 const verifiedByPriority = Object.fromEntries(['P0','P1','P2'].map(p => [p, independentlyVerified.filter(v=>v.priority===p).length]));
+const reviewedByPriority = Object.fromEntries(['P0','P1','P2'].map(p => [p, reviewedWarnings.filter(v=>v.priority===p).length]));
 const bySubject = {}; for (const item of queue) bySubject[item.subject]=(bySubject[item.subject]||0)+1;
 const byCategory = {}; for (const item of queue) for (const c of item.categories) byCategory[c]=(byCategory[c]||0)+1;
 
@@ -139,6 +142,7 @@ console.log(`Script/load errors: ${scriptErrors.length}`);
 console.log(`Unresolved risk review candidates: ${queue.length}`);
 console.log(`P0: ${byPriority.P0} / P1: ${byPriority.P1} / P2: ${byPriority.P2}`);
 console.log(`Independently verified risk items: ${independentlyVerified.length} (P0 ${verifiedByPriority.P0} / P1 ${verifiedByPriority.P1} / P2 ${verifiedByPriority.P2})`);
+console.log(`Reviewed with source/semantics warning: ${reviewedWarnings.length} (P0 ${reviewedByPriority.P0} / P1 ${reviewedByPriority.P1} / P2 ${reviewedByPriority.P2})`);
 console.log('\n[Unresolved by subject]');
 for (const subject of ['1과목','2과목','3과목','4과목','5과목']) console.log(`${subject}: ${bySubject[subject]||0}`);
 console.log('\n[Unresolved by category]');
@@ -153,5 +157,9 @@ if (!summaryOnly) {
     console.log(`  ${item.reasons.join(', ')}`); console.log(`  ${shortText}`);
   }
   if (queue.length>printLimit) console.log(`... ${queue.length-printLimit} more (use --limit=N)`);
+  if (reviewedWarnings.length) {
+    console.log(`\n[Reviewed source/semantics warnings: ${reviewedWarnings.length}]`);
+    for (const item of reviewedWarnings.slice(0,20)) console.log(`- ${item.id} ${item.reviewOutcome || 'reviewed_warning'}`);
+  }
 }
-if (!scriptErrors.length) console.log('\nPASS: unresolved answer-risk queue generated. Verify remaining P0 first; independently verified items are excluded from unresolved counts.');
+if (!scriptErrors.length) console.log('\nPASS: unresolved answer-risk queue generated. Independently verified and explicitly reviewed warning items are excluded from unresolved counts.');
