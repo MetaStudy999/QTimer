@@ -1,8 +1,6 @@
 // QTimer v0.1 browser-flow quality fixes.
 // Keep this small and data-neutral: it only reconciles UI state after undo.
 (function applyQTimerUiQualityFixes(){
-  const originalUndoLastAttempt = undoLastAttempt;
-
   function undoLastAttemptAndRestoreQuestion(){
     if (!state.attempts.length) return;
 
@@ -16,8 +14,14 @@
     renderQuestion();
   }
 
-  // app.js attached the original function directly to the button, so replace that listener too.
-  els.undoBtn.removeEventListener("click", originalUndoLastAttempt);
+  // Reassign the global lexical binding so Ctrl+Z uses the reconciled behavior.
   undoLastAttempt = undoLastAttemptAndRestoreQuestion;
-  els.undoBtn.addEventListener("click", undoLastAttemptAndRestoreQuestion);
+
+  // The original app.js click listener was registered before this compatibility layer.
+  // Intercept in capture phase so only one undo implementation executes.
+  els.undoBtn.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    undoLastAttemptAndRestoreQuestion();
+  }, { capture: true });
 })();
