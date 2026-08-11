@@ -36,7 +36,7 @@
       for (const prefix of subject.prefixes) {
         if (!id.startsWith(prefix)) continue;
         const suffix = id.slice(prefix.length);
-        const m = suffix.match(/^ch(\d{2})-(\d{2})$/);
+        const m = suffix.match(/^ch(\d{2})-(\d{2,3})$/);
         return {subject,prefix,match:m};
       }
     }
