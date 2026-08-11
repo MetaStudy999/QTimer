@@ -137,3 +137,27 @@
   }, { once: true });
   document.body.appendChild(script);
 })();
+
+// Settings v3 keeps the stable Settings v2 renderer, but must preserve v3-only fields
+// before v2 normalizes/persists the shared settings key during page boot.
+(function prepareSettingsV3(){
+  try {
+    const raw = localStorage.getItem("qtimer-settings-v2");
+    if (raw) globalThis.__QTIMER_SETTINGS_V3_BOOTSTRAP_RAW = raw;
+  } catch {}
+
+  function load(){
+    if (globalThis.QTIMER_SETTINGS?.version !== 2) {
+      setTimeout(load, 30);
+      return;
+    }
+    if (document.querySelector('script[data-qtimer-feature="settings-v3"]')) return;
+    const script = document.createElement("script");
+    script.src = "./settings-v3.js";
+    script.dataset.qtimerFeature = "settings-v3";
+    script.defer = false;
+    document.body.appendChild(script);
+  }
+
+  load();
+})();

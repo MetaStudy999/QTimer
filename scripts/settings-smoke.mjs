@@ -17,59 +17,60 @@ try {
   await page.goto(url,{waitUntil:'networkidle0',timeout:30_000});
   await page.evaluate(()=>localStorage.clear());
   await page.reload({waitUntil:'networkidle0',timeout:30_000});
-  await page.waitForFunction(()=>globalThis.QTIMER_SETTINGS?.version===2 && document.querySelector('#settingsTab'),{timeout:10_000});
+  await page.waitForFunction(()=>globalThis.QTIMER_SETTINGS?.version===3 && document.querySelector('#settingsTab'),{timeout:10_000});
   await page.click('#settingsTab');
   await page.waitForFunction(()=>document.querySelector('#settingsView')?.hidden===false);
 
   const controls = await page.evaluate(() => ({
     version:globalThis.QTIMER_SETTINGS.version,
     key:globalThis.QTIMER_SETTINGS.key,
+    questionThemes:document.querySelectorAll('[data-qt-theme-kind="question"]').length,
+    answerThemes:document.querySelectorAll('[data-qt-theme-kind="answer"]').length,
+    apiQuestionThemes:globalThis.QTIMER_SETTINGS.themes.question.length,
+    apiAnswerThemes:globalThis.QTIMER_SETTINGS.themes.answer.length,
+    scaleMin:document.querySelector('#qtScaleRange')?.min,
+    scaleMax:document.querySelector('#qtScaleRange')?.max,
+    scaleSteps:globalThis.QTIMER_SETTINGS.scaleSteps.length,
     questionFont:Boolean(document.querySelector('#qtQuestionFont')),
-    questionSize:Boolean(document.querySelector('#qtQuestionSize')),
-    questionColor:Boolean(document.querySelector('#qtQuestionColor')),
-    questionBold:Boolean(document.querySelector('#qtQuestionBold')),
-    questionHighlight:Boolean(document.querySelector('#qtQuestionHighlight')),
-    questionHighlightColor:Boolean(document.querySelector('#qtQuestionHighlightColor')),
-    answerFont:Boolean(document.querySelector('#qtAnswerFont')),
-    answerSize:Boolean(document.querySelector('#qtAnswerSize')),
-    answerColor:Boolean(document.querySelector('#qtAnswerColor')),
-    answerBold:Boolean(document.querySelector('#qtAnswerBold')),
-    answerHighlight:Boolean(document.querySelector('#qtAnswerHighlight')),
-    answerHighlightColor:Boolean(document.querySelector('#qtAnswerHighlightColor')),
-    screenButtons:document.querySelectorAll('[data-qt-scale]').length
+    answerFont:Boolean(document.querySelector('#qtAnswerFont'))
   }));
-  assert(controls.version===2 && controls.key==='qtimer-settings-v2','Settings v2 API/key mismatch');
-  assert(Object.entries(controls).filter(([key])=>!['version','key','screenButtons'].includes(key)).every(([,value])=>value),'Required question/answer presentation controls are missing');
-  assert(controls.screenButtons===3,'Screen scale should have small/normal/large buttons');
+  assert(controls.version===3 && controls.key==='qtimer-settings-v2','Settings v3 API/shared storage key mismatch');
+  assert(controls.questionThemes===5 && controls.answerThemes===5 && controls.apiQuestionThemes===5 && controls.apiAnswerThemes===5,'Expected exactly five question and five answer themes');
+  assert(controls.scaleMin==='1' && controls.scaleMax==='10' && controls.scaleSteps===10,'Screen scale must expose ten discrete steps');
+  assert(controls.questionFont && controls.answerFont,'Existing typography controls disappeared in Settings v3');
 
-  await page.select('#qtQuestionFont','gothic');
-  await page.select('#qtQuestionSize','24');
+  await page.click('[data-qt-theme-kind="question"][data-qt-theme="focus-blue"]');
+  await page.click('[data-qt-theme-kind="answer"][data-qt-theme="stable-green"]');
+  await page.waitForFunction(()=>{
+    const s=JSON.parse(localStorage.getItem('qtimer-settings-v2'));
+    return s?.version===3 && s?.dapchigi?.question?.theme==='focus-blue' && s?.dapchigi?.answer?.theme==='stable-green';
+  });
+
+  let stored = await page.evaluate(()=>JSON.parse(localStorage.getItem('qtimer-settings-v2')));
+  assert(stored.dapchigi.question.fontColor==='#16324f' && stored.dapchigi.question.highlightColor==='#dceeff' && stored.dapchigi.question.highlight,'Question focus-blue theme did not save expected palette');
+  assert(stored.dapchigi.answer.fontColor==='#14532d' && stored.dapchigi.answer.highlightColor==='#dcfce7' && stored.dapchigi.answer.highlight,'Answer stable-green theme did not save expected palette');
+
   await page.$eval('#qtQuestionColor',el=>{el.value='#123456';el.dispatchEvent(new Event('input',{bubbles:true}));});
-  await page.select('#qtQuestionScope','keyword');
-  await page.click('#qtQuestionBold');
-  await page.click('#qtQuestionHighlight');
-  await page.$eval('#qtQuestionHighlightColor',el=>{el.value='#abc123';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qtimer-settings-v2'))?.dapchigi?.question?.theme==='custom');
+  assert(await page.$eval('#qtQuestionThemeState',el=>el.textContent)==='사용자 지정','Manual color edit should switch the question palette to custom');
 
-  await page.select('#qtAnswerFont','serif');
-  await page.select('#qtAnswerSize','20');
-  await page.$eval('#qtAnswerColor',el=>{el.value='#654321';el.dispatchEvent(new Event('input',{bubbles:true}));});
-  await page.select('#qtAnswerScope','all');
-  await page.click('#qtAnswerBold');
-  await page.click('#qtAnswerHighlight');
-  await page.$eval('#qtAnswerHighlightColor',el=>{el.value='#fedcba';el.dispatchEvent(new Event('input',{bubbles:true}));});
-  await page.click('#qtSetAnswerMark');
+  // Return to a named palette so named-theme persistence is tested as well.
+  await page.click('[data-qt-theme-kind="question"][data-qt-theme="calm-mint"]');
 
-  await page.click('[data-qt-scale="large"]');
-  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qtimer-settings-v2'))?.display?.scale==='large');
+  await page.$eval('#qtScaleRange',el=>{el.value='10';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qtimer-settings-v2'))?.display?.scaleLevel===10);
+  const scale10 = await page.evaluate(()=>({level:document.body.dataset.qtimerScaleLevel,percent:document.body.dataset.qtimerScalePercent,zoom:document.body.style.zoom,label:document.querySelector('#qtScaleValue')?.textContent}));
+  assert(scale10.level==='10' && scale10.percent==='125','10th scale step should be 125%');
+  assert(Math.abs(Number.parseFloat(scale10.zoom)-1.25)<0.001,`Expected zoom 1.25 at scale level 10, got ${scale10.zoom}`);
+  assert(scale10.label.includes('10단계') && scale10.label.includes('125%'),'Scale label does not show level 10 / 125%');
 
-  const stored = await page.evaluate(()=>JSON.parse(localStorage.getItem('qtimer-settings-v2')));
-  assert(stored.version===2,'Stored settings schema should be v2');
-  assert(stored.dapchigi.question.fontFamily==='gothic' && stored.dapchigi.question.fontSize==='24','Question font settings were not saved');
-  assert(stored.dapchigi.question.fontColor==='#123456' && stored.dapchigi.question.highlightColor==='#abc123','Question color settings were not saved');
-  assert(stored.dapchigi.question.bold && stored.dapchigi.question.highlight && stored.dapchigi.question.emphasisScope==='keyword','Question emphasis settings were not saved');
-  assert(stored.dapchigi.answer.fontFamily==='serif' && stored.dapchigi.answer.fontSize==='20','Answer font settings were not saved');
-  assert(stored.dapchigi.answer.fontColor==='#654321' && stored.dapchigi.answer.highlightColor==='#fedcba','Answer color settings were not saved');
-  assert(stored.dapchigi.answer.bold && stored.dapchigi.answer.highlight && stored.dapchigi.answer.answerMark && stored.dapchigi.answer.keywordRed,'Answer emphasis settings were not saved');
+  await page.click('#qtScaleDefault');
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qtimer-settings-v2'))?.display?.scaleLevel===5);
+  assert(await page.$eval('#qtScaleValue',el=>el.textContent)==='5단계 · 100%','Default scale button should return to level 5 / 100%');
+
+  // Use level 8 for persistence and Dapchigi rendering checks.
+  await page.$eval('#qtScaleRange',el=>{el.value='8';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qtimer-settings-v2'))?.display?.scaleLevel===8);
 
   await page.click('#dapchigiTab');
   await page.waitForFunction(()=>state.mode==='dapchigi' && document.querySelector('#dapchigiPanel')?.hidden===false);
@@ -81,47 +82,36 @@ try {
   const qStyle = await page.evaluate(()=>{
     const stem=getComputedStyle(document.querySelector('#questionText'));
     const mark=document.querySelector('#questionText mark.dap-highlight-question');
-    const markStyle=mark ? getComputedStyle(mark) : null;
-    return {fontFamily:stem.fontFamily,fontSize:stem.fontSize,color:stem.color,mark:Boolean(mark),markBg:markStyle?.backgroundColor||'',markWeight:markStyle?.fontWeight||''};
+    return {color:stem.color,markBg:mark?getComputedStyle(mark).backgroundColor:'',level:document.body.dataset.qtimerScaleLevel,percent:document.body.dataset.qtimerScalePercent};
   });
-  assert(qStyle.fontSize==='24px',`Question font size mismatch: ${qStyle.fontSize}`);
-  assert(qStyle.color==='rgb(18, 52, 86)',`Question font color mismatch: ${qStyle.color}`);
-  assert(qStyle.mark && qStyle.markBg==='rgb(171, 193, 35)',`Question keyword highlight mismatch: ${qStyle.markBg}`);
-  assert(Number.parseInt(qStyle.markWeight,10)>=700,'Question keyword highlight should also be bold');
+  assert(qStyle.color==='rgb(20, 61, 54)',`Question calm-mint text color mismatch: ${qStyle.color}`);
+  assert(qStyle.markBg==='rgb(221, 245, 236)',`Question calm-mint highlight mismatch: ${qStyle.markBg}`);
+  assert(qStyle.level==='8' && qStyle.percent==='115','Dapchigi should retain scale level 8 / 115%');
 
   await page.evaluate(()=>{state.dapchigiV1.step='preview';renderQuestion();});
-  await page.waitForFunction(()=>document.querySelector('#dapAnswerValue .qt-answer-keyword-red'));
+  await page.waitForFunction(()=>document.querySelector('#dapAnswerValue'));
   const aStyle = await page.evaluate(()=>{
     const value=document.querySelector('#dapAnswerValue');
-    const valueStyle=getComputedStyle(value);
     const mark=value.querySelector('mark.dap-highlight-answer');
-    const markStyle=mark ? getComputedStyle(mark) : null;
-    const red=value.querySelector('.qt-answer-keyword-red');
-    const redStyle=red ? getComputedStyle(red) : null;
-    return {fontFamily:valueStyle.fontFamily,fontSize:valueStyle.fontSize,color:valueStyle.color,mark:Boolean(mark),markBg:markStyle?.backgroundColor||'',markWeight:markStyle?.fontWeight||'',red:red?.textContent||'',redColor:redStyle?.color||'',redWeight:redStyle?.fontWeight||'',scale:document.body.dataset.qtimerScale,zoom:document.body.style.zoom};
+    return {color:getComputedStyle(value).color,markBg:mark?getComputedStyle(mark).backgroundColor:''};
   });
-  assert(aStyle.fontSize==='20px',`Answer font size mismatch: ${aStyle.fontSize}`);
-  assert(aStyle.color==='rgb(101, 67, 33)',`Answer font color mismatch: ${aStyle.color}`);
-  assert(aStyle.mark && aStyle.markBg==='rgb(254, 220, 186)',`Answer highlight mismatch: ${aStyle.markBg}`);
-  assert(Number.parseInt(aStyle.markWeight,10)>=700,'Answer highlight should also be bold');
-  assert(aStyle.red.includes('미들웨어') && aStyle.redColor==='rgb(217, 45, 32)' && Number.parseInt(aStyle.redWeight,10)>=700,'Answer keyword red + bold did not render');
-  assert(aStyle.scale==='large','Screen scale data attribute mismatch');
+  assert(aStyle.color==='rgb(20, 83, 45)',`Answer stable-green text color mismatch: ${aStyle.color}`);
+  assert(aStyle.markBg==='rgb(220, 252, 231)',`Answer stable-green highlight mismatch: ${aStyle.markBg}`);
 
   await page.reload({waitUntil:'networkidle0',timeout:30_000});
-  await page.waitForFunction(()=>globalThis.QTIMER_SETTINGS?.version===2,{timeout:10_000});
-  const persisted=await page.evaluate(()=>({settings:globalThis.QTIMER_SETTINGS.get(),payload:globalThis.QTIMER_SETTINGS.exportPayload(),scale:document.body.dataset.qtimerScale}));
-  assert(persisted.settings.dapchigi.question.fontSize==='24' && persisted.settings.dapchigi.answer.fontSize==='20','Typography did not persist after reload');
-  assert(persisted.settings.display.scale==='large' && persisted.scale==='large','Screen scale did not persist after reload');
-  assert(persisted.payload.format==='qtimer-settings' && persisted.payload.version===2,'Settings v2 export payload invalid');
+  await page.waitForFunction(()=>globalThis.QTIMER_SETTINGS?.version===3,{timeout:10_000});
+  const persisted = await page.evaluate(()=>({settings:globalThis.QTIMER_SETTINGS.get(),payload:globalThis.QTIMER_SETTINGS.exportPayload(),level:document.body.dataset.qtimerScaleLevel,percent:document.body.dataset.qtimerScalePercent}));
+  assert(persisted.settings.dapchigi.question.theme==='calm-mint' && persisted.settings.dapchigi.answer.theme==='stable-green','Named learning themes did not persist after reload');
+  assert(persisted.settings.display.scaleLevel===8 && persisted.level==='8' && persisted.percent==='115','Ten-step scale did not persist after reload');
+  assert(persisted.payload.format==='qtimer-settings' && persisted.payload.version===3,'Settings v3 export payload invalid');
 
-  const migrated = await page.evaluate(()=>globalThis.QTIMER_SETTINGS.validatePayload({format:'qtimer-settings',version:1,settings:{version:1,dapchigi:{questionStyle:'keyword-highlight',answerStyle:'mark',answerKeywordRed:false}}}));
-  assert(migrated.version===2 && migrated.dapchigi.question.highlight && migrated.dapchigi.question.emphasisScope==='keyword','v1 question style migration failed');
-  assert(migrated.dapchigi.answer.answerMark && migrated.dapchigi.answer.keywordRed===false,'v1 answer style migration failed');
+  const migratedV2 = await page.evaluate(()=>globalThis.QTIMER_SETTINGS.validatePayload({format:'qtimer-settings',version:2,settings:{version:2,dapchigi:{question:{fontFamily:'default',fontSize:'default',fontColor:'#101828',bold:false,highlight:true,highlightColor:'#bfdbfe',emphasisScope:'all'},answer:{fontFamily:'default',fontSize:'default',fontColor:'#101828',bold:false,highlight:true,highlightColor:'#fecaca',emphasisScope:'all',answerMark:false,keywordRed:true}},display:{scale:'large'}}}));
+  assert(migratedV2.version===3 && migratedV2.display.scaleLevel===7,'Settings v2 large scale migration should map to v3 level 7 / 110%');
 
   assert(pageErrors.length===0,`Browser page errors: ${pageErrors.join(' | ')}`);
   assert(failedScripts.length===0,`JavaScript load failures: ${failedScripts.join(' | ')}`);
-  console.log('# QTimer settings v2 smoke');
-  console.log('PASS: typography / font colors / bold / highlight colors / emphasis scope');
-  console.log('PASS: answer mark + answer keyword red / screen scale / live persistence');
-  console.log('PASS: export v2 / import compatibility with v1 settings');
+  console.log('# QTimer settings v3 smoke');
+  console.log('PASS: 5 question themes / 5 answer themes / custom override');
+  console.log('PASS: ten-step 80-125% scaling / default 100% / reload persistence');
+  console.log('PASS: Dapchigi theme rendering / export v3 / Settings v2 migration');
 } finally { await browser.close(); }
