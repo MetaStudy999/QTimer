@@ -79,6 +79,50 @@
 - Ch05 1~14
 - 합계 192
 
+## 2단계 QA 게이트
+
+### Gate 1 — 수량/기본 무결성
+
+```bash
+node scripts/audit-question-bank.mjs
+```
+
+반드시 다음을 만족해야 한다.
+
+- 과목별 문제 수가 221 / 158 / 191 / 211 / 192
+- 전체 973
+- Duplicate IDs = 0
+- Invalid question records = 0
+- Script/load errors = 0
+
+### Gate 2 — 심층 구조/정답/원본 QA
+
+```bash
+node scripts/qa-question-bank.mjs
+```
+
+검사 항목:
+
+- 과목별 Chapter 문제번호 1~N 연속성
+- canonical ID의 Chapter/문제번호와 `sourceQuestionNo` 일치 여부
+- 문제 페이지의 과목 번호 일치 여부
+- Google Drive 원본 링크 형식
+- `sourceAnswer` ↔ `aiDetectedAnswer` 불일치
+- `sourceAnswer` ↔ `aiReasonedAnswer` 불일치
+- `verificationStatus=auto_matched` 상태에서 정답 출처 불일치 여부
+- 동일 문제문이 서로 다른 ID로 중복 등록되었는지 여부
+- 해설/FINAL KEY 누락 여부
+
+정답 출처 불일치나 동일 문제문 중복은 `Manual review queue`로 분리하여 원본 이미지 확인 대상으로 남긴다. 구조적 누락, 범위 오류, 페이지/과목 불일치, auto-matched 모순은 QA 실패로 처리한다.
+
+### 통합 점검
+
+```bash
+bash scripts/check-wsl.sh
+```
+
+위 명령은 Gate 1과 Gate 2를 연속 실행한다.
+
 ## 무결성 규칙
 
 1. 중복 ID는 문제은행에서 한 번만 인정한다.
@@ -89,6 +133,7 @@
 6. 신규 문제 추가 시 `expectedCurrent`와 Chapter 범위를 함께 갱신한다.
 7. 풀이 기록(localStorage)은 문제은행 정규화 과정에서 삭제하지 않는다.
 8. 숫자 불일치는 기준값을 낮추지 않고 누락 파일·로드 오류·ID 오류를 먼저 추적한다.
+9. Gate 1과 Gate 2가 모두 통과되기 전에는 해당 문제은행 버전을 최종 안정판으로 간주하지 않는다.
 
 ## 확정 기준
 
