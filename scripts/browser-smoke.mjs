@@ -149,6 +149,8 @@ try {
   // Cancel any pending auto-advance from the hard-timeout test before Dapchigi starts.
   await page.reload({ waitUntil: 'networkidle0', timeout: 30_000 });
   await page.waitForSelector('#dapchigiPanel', { timeout: 10_000 });
+  await page.click('#studyTab');
+  await page.waitForSelector('.question-pane', { visible: true, timeout: 10_000 });
   const regularAttemptsBeforeDapchigi = await page.evaluate(() => state.attempts.length);
 
   await page.select('#modeSelect', 'dapchigi');
