@@ -25,6 +25,10 @@
   markVerified('sujebi-2026-prog-lang-ch02-63', "원본 4-31 하단 정답 ②. 6790을 500·100·50·10 단위로 분해하면 13+2+1+4=20으로 독립 실행 일치");
   markVerified('sujebi-2026-prog-lang-ch02-66', "원본 4-32 하단 정답 ②. 0+1+...+9=45로 독립 실행 일치");
 
+  markVerified('sujebi-2026-prog-lang-ch03-68', "원본 4-57 하단 정답 ②. /27은 마지막 옥텟 11100000₂=224이므로 서브넷 마스크 255.255.255.224, 독립 계산 일치");
+  markVerified('sujebi-2026-prog-lang-ch03-69', "원본 4-57 하단 정답 ①. /24를 10개 FLSM으로 나누면 /28, 10번째 블록 144~159의 Broadcast는 200.1.1.159, 독립 계산 일치");
+  markVerified('sujebi-2026-prog-lang-ch03-70', "원본 4-58 하단 정답 ③. /24를 4개로 나누면 /26, 4번째 서브넷 .192/26의 사용 가능 IP는 .193부터이므로 4번째는 .196, 독립 계산 일치");
+
   const q29 = byId.get('sujebi-2026-prog-lang-ch02-29');
   if (q29) Object.assign(q29, {
     questionText: "다음 Java 프로그램의 실행 결과는? `int a=1,b=2,c=3,d=4; int mx,mn; mx = a < b ? b : a; if(mx==1){ mn = a > mx ? b : a; } else { mn = b < mx ? d : c; } System.out.println(mn);`",
