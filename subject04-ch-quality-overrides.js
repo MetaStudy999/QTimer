@@ -17,10 +17,20 @@
   markVerified('sujebi-2026-prog-lang-ch03-11', "원본 4-41 하단 정답 ④. FREE 8K·12K·16K 중 Worst Fit은 가장 큰 16K No.5 선택");
   markVerified('sujebi-2026-prog-lang-ch03-12', "원본 4-41 하단 정답 ②. First Fit에서 17K를 처음 수용하는 23K 공간에 배치하므로 내부 단편화 6K");
 
+  markVerified('sujebi-2026-prog-lang-ch02-01', "원본 4-6 하단 정답 ①. static int b[9]={1,2,3}에서 명시되지 않은 나머지 원소는 0 초기화되므로 b[5]=0");
+  markVerified('sujebi-2026-prog-lang-ch02-09', "원본 4-8 하단 정답 ③. p=a[0]에서 i=1~3이면 22+44+55=121로 독립 실행 일치");
+  markVerified('sujebi-2026-prog-lang-ch02-11', "원본 4-8 하단 정답 ③. 'A'의 코드값 65에 1을 더해 66을 %d로 출력하므로 독립 실행 일치");
   markVerified('sujebi-2026-prog-lang-ch02-12', "원본 4-9 하단 정답 ③. 4(0100) | 7(0111) = 7로 독립 실행 일치");
   markVerified('sujebi-2026-prog-lang-ch02-15', "원본 4-10 하단 정답 ③. r1=1, r2=1, r3=0이므로 합 2로 독립 실행 일치");
+  markVerified('sujebi-2026-prog-lang-ch02-16', "원본 4-10 하단 정답 ①. y=x++ 후 x=6,y=5, z=--x 후 x=5,z=5이므로 5,5,5 출력");
   markVerified('sujebi-2026-prog-lang-ch02-19', "원본 4-12 하단 정답 ③. 1+3+5+7+9=25로 독립 실행 일치");
+  markVerified('sujebi-2026-prog-lang-ch02-20', "원본 4-12 하단 정답 ③. 피보나치 배열 0,1,1,2,3,5,8,13,21,34이므로 arr[9]=34");
+  markVerified('sujebi-2026-prog-lang-ch02-21', "원본 4-13 하단 정답 ④. Java while 조건은 boolean이어야 하며 int 식 y--는 boolean이 아니므로 컴파일 오류");
+  markVerified('sujebi-2026-prog-lang-ch02-22', "원본 4-13 하단 정답 ①. do-while 1회 실행으로 cnt=1, cnt==1이 참이라 cnt++ 후 최종 2");
+  markVerified('sujebi-2026-prog-lang-ch02-23', "원본 4-13 하단 정답 ①. 무한 while에서 A,B,C 출력 후 continue로 D를 건너뛰므로 A,B,C 반복");
   markVerified('sujebi-2026-prog-lang-ch02-24', "원본 4-14 하단 정답 ③. range(n+1)로 0~11 합=66, 독립 실행 일치");
+  markVerified('sujebi-2026-prog-lang-ch02-26', "원본 4-15 하단 정답 ②. b+2=4, a<4 참, a<<1=2, 2<=b 참이므로 참&&참=1");
+  markVerified('sujebi-2026-prog-lang-ch02-30', "원본 4-16 하단 정답 ①. list_data[0]은 문자열 a, dict_data['a']는 90이므로 a와 90을 차례로 출력");
   markVerified('sujebi-2026-prog-lang-ch02-33', "원본 4-18 하단 정답 ④. i가 4가 되면 break되어 i=4, 독립 실행 일치");
   markVerified('sujebi-2026-prog-lang-ch02-37', "원본 4-20 하단 정답 ②. r1=1, r2=0, r3=0 → r3-r2+r1=1로 독립 실행 일치");
   markVerified('sujebi-2026-prog-lang-ch02-53', "원본 4-26 하단 정답 ④. 문자열 C compile을 역순 순회하면 elipmoc C, 독립 실행 일치");
