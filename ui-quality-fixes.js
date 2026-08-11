@@ -26,6 +26,57 @@
   }, { capture: true });
 })();
 
+// Make Dapchigi a first-class top navigation entry instead of hiding it only inside
+// the Study mode selector. Clicking it opens the study workspace and activates
+// the existing Dapchigi mode; no question-bank data is changed.
+(function installDapchigiTopNavigation(){
+  const tabs = document.querySelector(".view-tabs");
+  const studyTab = document.querySelector("#studyTab");
+  const dashboardTab = document.querySelector("#dashboardTab");
+  if (!tabs || !studyTab || document.querySelector("#dapchigiTab")) return;
+
+  const dapchigiTab = document.createElement("button");
+  dapchigiTab.id = "dapchigiTab";
+  dapchigiTab.type = "button";
+  dapchigiTab.textContent = "답치기";
+  studyTab.insertAdjacentElement("afterend", dapchigiTab);
+
+  function setDapchigiActive(active){
+    dapchigiTab.classList.toggle("active", active);
+    if (active) {
+      studyTab.classList.remove("active");
+      dashboardTab?.classList.remove("active");
+    }
+  }
+
+  function activateDapchigi(){
+    if (typeof showStudyV01 === "function") showStudyV01(false);
+
+    const hasDapchigiOption = [...els.modeSelect.options]
+      .some(option => option.value === "dapchigi");
+
+    if (hasDapchigiOption) {
+      els.modeSelect.value = "dapchigi";
+      els.modeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    } else {
+      // The feature script is appended immediately after this layer. Persist the
+      // requested mode so its initializer can enter Dapchigi as soon as it loads.
+      state.mode = "dapchigi";
+      saveState();
+    }
+
+    setDapchigiActive(true);
+  }
+
+  dapchigiTab.addEventListener("click", activateDapchigi);
+  studyTab.addEventListener("click", () => setDapchigiActive(false));
+  dashboardTab?.addEventListener("click", () => setDapchigiActive(false));
+  els.modeSelect.addEventListener("change", () => {
+    const inStudyView = !document.querySelector("#studyView")?.hidden;
+    setDapchigiActive(inStudyView && els.modeSelect.value === "dapchigi");
+  });
+})();
+
 // Feature layers that need the complete 973-question bank must initialize after every
 // subject data script and compatibility wrapper has loaded. Keep SOURCE BANK immutable.
 (function loadPostBankFeatures(){
