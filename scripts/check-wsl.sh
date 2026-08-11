@@ -42,8 +42,14 @@ if command -v node >/dev/null 2>&1; then
   else
     fail "문제은행 심층 QA 실패"
   fi
+
+  if node scripts/audit-answer-risk.mjs --summary; then
+    ok "정답 위험군 추출 완료 (P0 우선 재검증 대상)"
+  else
+    fail "정답 위험군 추출 실패"
+  fi
 else
-  warn "node가 없어 문제은행 자동 감사를 생략합니다. 필요 시: node scripts/audit-question-bank.mjs && node scripts/qa-question-bank.mjs"
+  warn "node가 없어 문제은행 자동 감사를 생략합니다. 필요 시: node scripts/audit-question-bank.mjs && node scripts/qa-question-bank.mjs && node scripts/audit-answer-risk.mjs"
 fi
 
 if [[ -f "$PID_FILE" ]]; then
