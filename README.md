@@ -6,13 +6,14 @@
 
 - 1차 적용: 정보처리기사 필기
 - 핵심 목표: 문제 풀이 속도 측정 → 자동 채점 → 취약문제 수집 → 반복 회독 → 숙달
-- 현재 단계: **v0.1 문제은행 완성·무결성 QA 및 로컬 학습 검증**
+- 현재 단계: **v0.1 문제은행 v1 동결 완료 · 로컬 학습/시험 흐름 검증**
 - 현재 검증 문제은행: **973문항**
   - 1과목 221
   - 2과목 158
   - 3과목 191
   - 4과목 211
   - 5과목 192
+- 정답 위험군: **Unresolved 0 / P0 0 / P1 0 / P2 0**
 
 ## 핵심 Workspace
 
@@ -75,7 +76,9 @@ node scripts/audit-answer-risk.mjs --limit=80
 
 - **Gate 1 (blocking)**: 전체 973문항 / 중복 0 / 잘못된 레코드 0 / 스크립트 로드 오류 0
 - **Gate 2 (blocking)**: 구조적 오류 0 / 미확인 반복 문제문 0 / 새 Manual review queue 0
-- **Gate 3 (non-blocking)**: P0/P1/P2 정답 위험군을 추출한다. 후보가 존재하는 것은 실패가 아니며 P0부터 원본과 독립 풀이로 재검증한다.
+- **Gate 3 (release-blocking)**: 개발 중에는 P0/P1/P2 후보를 우선순위 큐로 관리할 수 있지만, 동결·배포 baseline에서는 `Unresolved 0 / P0 0 / P1 0 / P2 0`을 만족해야 함
+
+현재 973문항 baseline은 세 Gate를 모두 통과한 상태입니다.
 
 자세한 내용은 `docs/dev-wsl.md`, `docs/implementation/question-bank-baseline.md`, `docs/implementation/answer-risk-qa.md`를 참고합니다.
 
