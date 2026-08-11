@@ -15,6 +15,31 @@ const SUBJECTS = {
   s5: { name: '5과목 정보시스템 구축관리', number: 5, prefixes: ['sujebi-2026-system-mgmt-', 'sujebi-2026-system-build-'], chapters: { 1:58, 2:41, 3:35, 4:44, 5:14 } }
 };
 
+// These pairs share the exact normalized question stem in the source book but are
+// intentionally separate source questions. Most use different choices and/or occur
+// on different source pages. The Subject 2 Pareto pair was additionally checked
+// against both source images and is an actual verbatim reprint in two chapters.
+const VERIFIED_REPEATED_STEM_PAIRS = new Set([
+  'sujebi-2026-sw-design-ch03-06|sujebi-2026-sw-design-ch03-13',
+  'sujebi-2026-sw-design-ch03-24|sujebi-2026-sw-design-ch03-28',
+  'sujebi-2026-sw-design-ch03-50|sujebi-2026-sw-design-ch03-65',
+  'sujebi-2026-sw-dev-ch03-21|sujebi-2026-sw-dev-ch04-02',
+  'sujebi-2026-db-build-ch02-32|sujebi-2026-db-build-ch02-39',
+  'sujebi-2026-db-build-ch02-32|sujebi-2026-db-build-ch02-40',
+  'sujebi-2026-db-build-ch02-32|sujebi-2026-db-build-ch02-47',
+  'sujebi-2026-db-build-ch03-21|sujebi-2026-db-build-ch03-22',
+  'sujebi-2026-db-build-ch03-26|sujebi-2026-db-build-ch03-28',
+  'sujebi-2026-db-build-ch03-26|sujebi-2026-db-build-ch03-29',
+  'sujebi-2026-db-build-ch03-13|sujebi-2026-db-build-ch03-35',
+  'sujebi-2026-db-build-ch04-01|sujebi-2026-db-build-ch04-05',
+  'sujebi-2026-prog-lang-ch03-71|sujebi-2026-prog-lang-ch03-72',
+  'sujebi-2026-prog-lang-ch03-82|sujebi-2026-prog-lang-ch03-83'
+]);
+
+function pairKey(a, b) {
+  return [String(a), String(b)].sort().join('|');
+}
+
 function read(rel) {
   return fs.readFileSync(path.join(root, rel), 'utf8');
 }
@@ -92,7 +117,6 @@ function parseLocation(q) {
       const suffix = id.slice(prefix.length);
       const canonical = suffix.match(/^ch(\d{2})-(\d{2,3})$/);
       if (canonical) return { key, spec, chapter:Number(canonical[1]), number:Number(canonical[2]), legacy:false };
-      // Initial MVP seed: Subject 1 Chapter 04 questions 13~22 predate canonical ch04 IDs.
       if (key === 's1' && /^\d{1,3}$/.test(suffix)) {
         const number = Number(suffix);
         if (number >= 13 && number <= 22) return { key, spec, chapter:4, number, legacy:true };
@@ -121,6 +145,8 @@ let sourceVsReasoned = 0;
 let detectedVsReasoned = 0;
 let autoMatchedContradictions = 0;
 let legacyIds = 0;
+let exactStemDuplicatePairs = 0;
+let verifiedRepeatedStemPairs = 0;
 
 for (const q of context.QUESTIONS) {
   const origin = origins.get(q?.id) || 'unknown';
@@ -159,8 +185,17 @@ for (const q of context.QUESTIONS) {
   const textKey = normalizedText(q.questionText);
   if (textKey) {
     const priorText = textMap.get(textKey);
-    if (priorText && priorText !== q.id) reviews.push(`exact question-text duplicate: ${priorText} ↔ ${q.id}`);
-    else textMap.set(textKey, q.id);
+    if (priorText && priorText !== q.id) {
+      exactStemDuplicatePairs += 1;
+      const key = pairKey(priorText, q.id);
+      if (VERIFIED_REPEATED_STEM_PAIRS.has(key)) {
+        verifiedRepeatedStemPairs += 1;
+      } else {
+        reviews.push(`unverified exact question-stem duplicate: ${priorText} ↔ ${q.id}`);
+      }
+    } else {
+      textMap.set(textKey, q.id);
+    }
   }
 
   const source = Number(q.sourceAnswer);
@@ -208,7 +243,9 @@ console.log(`source ≠ aiReasoned : ${sourceVsReasoned}`);
 console.log(`aiDetected ≠ aiReasoned : ${detectedVsReasoned}`);
 console.log(`auto_matched contradictions : ${autoMatchedContradictions}`);
 console.log(`legacy Subject 1 Ch04 IDs retained : ${legacyIds}`);
-console.log(`exact duplicate question texts : ${reviews.filter(v => v.startsWith('exact question-text duplicate:')).length}`);
+console.log(`exact repeated question-stem pairs : ${exactStemDuplicatePairs}`);
+console.log(`verified source-book repeated stems : ${verifiedRepeatedStemPairs}`);
+console.log(`unverified repeated stems : ${exactStemDuplicatePairs - verifiedRepeatedStemPairs}`);
 console.log(`critical structural issues : ${critical.length}`);
 console.log(`review queue items : ${reviews.length}`);
 console.log(`warnings : ${warnings.length}`);
@@ -236,5 +273,5 @@ if (warnings.length) {
 if (critical.length || scriptErrors.length) {
   process.exitCode = 1;
 } else {
-  console.log('\nPASS: structural QA passed. Review-queue items, if any, are non-blocking and should be checked against source images.');
+  console.log('\nPASS: structural QA passed. Only newly unverified review items require manual source checking.');
 }
