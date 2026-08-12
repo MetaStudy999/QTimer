@@ -72,3 +72,14 @@
   script.defer = false;
   document.body.appendChild(script);
 })();
+
+// Focus Quick Settings v1 adds a compact, reversible question/answer/keyword display drawer.
+// The module waits for Focus Reading + Settings v3 before booting, so dynamic load order is safe.
+(function loadDapchigiFocusQuickSettingsV1(){
+  if (document.querySelector('script[data-qtimer-feature="dapchigi-focus-quick-settings-v1"]')) return;
+  const script = document.createElement('script');
+  script.src = './dapchigi-focus-quick-settings-v1.js';
+  script.dataset.qtimerFeature = 'dapchigi-focus-quick-settings-v1';
+  script.defer = false;
+  document.body.appendChild(script);
+})();
