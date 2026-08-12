@@ -73,8 +73,8 @@
     style.id = "qtDapFocusReadingV2Styles";
     style.textContent = `
       :root{
-        --qt-focus-stem-soft:#fff4bd;
-        --qt-focus-keyword:#6b3f00;
+        --qt-focus-stem-soft:var(--qt-q-highlight,#bfdbfe);
+        --qt-focus-keyword:color-mix(in srgb,var(--qt-q-highlight,#bfdbfe) 38%,#111827 62%);
         --qt-focus-explain-bg:#ffffff;
         --qt-focus-explain-muted:#667085;
       }
