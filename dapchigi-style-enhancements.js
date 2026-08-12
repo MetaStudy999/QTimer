@@ -59,3 +59,14 @@
   script.defer = false;
   document.body.appendChild(script);
 })();
+
+// Focus Reading v2 keeps Dapchigi centered on problem + explanation and hides global navigation.
+// It is a presentation-only layer and intentionally loads after the stable Dapchigi/Study Shell stack.
+(function loadDapchigiFocusReadingV2(){
+  if (document.querySelector('script[data-qtimer-feature="dapchigi-focus-reading-v2"]')) return;
+  const script = document.createElement('script');
+  script.src = './dapchigi-focus-reading-v2.js';
+  script.dataset.qtimerFeature = 'dapchigi-focus-reading-v2';
+  script.defer = false;
+  document.body.appendChild(script);
+})();
