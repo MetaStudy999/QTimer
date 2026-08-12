@@ -116,6 +116,16 @@ try {
   await page.click('#qtActionDock [data-action="space"]'); await expectRuntime(4,'reveal');
   await page.click('#qtActionDock [data-action="space"]'); await expectRuntime(5,'reveal');
 
+  // Runtime state changes synchronously; Study Shell applies the matching button state on its render sync.
+  // Wait for the actual visible/interactive dock contract rather than racing that render frame.
+  await page.waitForFunction(()=>{
+    const run=globalThis.QTIMER_DAP_PROGRAMS.runtime();
+    const entry=run?.compiled?.[run.index];
+    const space=document.querySelector('#qtActionDock [data-action="space"]');
+    const ratings=['o','a','x'].map(key=>document.querySelector(`#qtActionDock [data-action="${key}"]`));
+    return entry?.type==='rate' && space?.disabled===true && ratings.every(button=>button && button.disabled===false);
+  },{timeout:5_000});
+
   const ratingStage=await page.evaluate(()=>({
     type:globalThis.QTIMER_DAP_PROGRAMS.runtime()?.compiled?.[globalThis.QTIMER_DAP_PROGRAMS.runtime()?.index]?.type,
     spaceDisabled:document.querySelector('#qtActionDock [data-action="space"]').disabled,
