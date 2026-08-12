@@ -253,6 +253,9 @@
       const previousRenderQuestion = renderQuestion;
       renderQuestion = function(){
         const result = previousRenderQuestion.apply(this, arguments);
+        // Finalize the Focus Reading DOM in the same event turn so callers never observe
+        // the transient core-render markup. Keep one rAF pass for layout/theme synchronization.
+        sync();
         requestAnimationFrame(sync);
         return result;
       };
