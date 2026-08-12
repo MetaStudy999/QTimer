@@ -6,6 +6,8 @@
   const SETTINGS_SNAPSHOT_KEY = `${SETTINGS_KEY}-preimport`;
   const FOCUS_SETTINGS_KEY = "qtimer-focus-quick-settings-v1";
   const FOCUS_SETTINGS_SNAPSHOT_KEY = `${FOCUS_SETTINGS_KEY}-preimport`;
+  const DAP_PROGRAMS_KEY = "qtimer-dapchigi-programs-v1";
+  const DAP_PROGRAMS_SNAPSHOT_KEY = `${DAP_PROGRAMS_KEY}-preimport`;
 
   function currentAttemptCount(){
     return Array.isArray(state?.attempts) ? state.attempts.length : 0;
@@ -33,6 +35,14 @@
     return null;
   }
 
+  function readStoredDapPrograms(){
+    try {
+      const parsed = JSON.parse(localStorage.getItem(DAP_PROGRAMS_KEY));
+      if (validObject(parsed)) return parsed;
+    } catch {}
+    return null;
+  }
+
   function currentSettings(){
     if (globalThis.QTIMER_SETTINGS?.get) return globalThis.QTIMER_SETTINGS.get();
     return readStoredSettings();
@@ -41,6 +51,11 @@
   function currentFocusSettings(){
     if (globalThis.QTIMER_FOCUS_QUICK_SETTINGS?.get) return globalThis.QTIMER_FOCUS_QUICK_SETTINGS.get();
     return readStoredFocusSettings();
+  }
+
+  function currentDapPrograms(){
+    if (globalThis.QTIMER_DAP_PROGRAMS?.get) return globalThis.QTIMER_DAP_PROGRAMS.get();
+    return readStoredDapPrograms();
   }
 
   function exportPayload(){
@@ -53,7 +68,8 @@
       questionCount: QUESTIONS.length,
       state: JSON.parse(JSON.stringify(state)),
       settings: currentSettings(),
-      focusReadingSettings: currentFocusSettings()
+      focusReadingSettings: currentFocusSettings(),
+      dapchigiPrograms: currentDapPrograms()
     };
   }
 
@@ -90,6 +106,9 @@
     if (payload.focusReadingSettings != null && !validObject(payload.focusReadingSettings)) {
       throw new Error("집중모드 빠른 표시 설정 데이터가 올바르지 않습니다.");
     }
+    if (payload.dapchigiPrograms != null && !validObject(payload.dapchigiPrograms)) {
+      throw new Error("답치기 프로그램 데이터가 올바르지 않습니다.");
+    }
     return payload;
   }
 
@@ -100,8 +119,9 @@
     const currentAttempts = currentAttemptCount();
     const hasSettings = validObject(payload.settings);
     const hasFocusSettings = validObject(payload.focusReadingSettings);
+    const hasDapPrograms = validObject(payload.dapchigiPrograms);
     const ok = window.confirm(
-      `QTimer 학습 데이터를 복원합니다.\n\n현재 기록: ${currentAttempts}회\n가져올 기록: ${incomingAttempts}회\n환경설정 포함: ${hasSettings ? "예" : "아니오"}\n집중모드 표시 설정 포함: ${hasFocusSettings ? "예" : "아니오"}\n\n현재 상태는 브라우저 내부 임시 백업으로 1회 보관한 뒤 교체됩니다. 계속하시겠습니까?`
+      `QTimer 학습 데이터를 복원합니다.\n\n현재 기록: ${currentAttempts}회\n가져올 기록: ${incomingAttempts}회\n환경설정 포함: ${hasSettings ? "예" : "아니오"}\n집중모드 표시 설정 포함: ${hasFocusSettings ? "예" : "아니오"}\n답치기 프로그램 포함: ${hasDapPrograms ? "예" : "아니오"}\n\n현재 상태는 브라우저 내부 임시 백업으로 1회 보관한 뒤 교체됩니다. 계속하시겠습니까?`
     );
     if (!ok) return;
 
@@ -111,6 +131,8 @@
     if (currentSettingsSnapshot) localStorage.setItem(SETTINGS_SNAPSHOT_KEY, currentSettingsSnapshot);
     const currentFocusSettingsSnapshot = localStorage.getItem(FOCUS_SETTINGS_KEY);
     if (currentFocusSettingsSnapshot) localStorage.setItem(FOCUS_SETTINGS_SNAPSHOT_KEY, currentFocusSettingsSnapshot);
+    const currentDapProgramsSnapshot = localStorage.getItem(DAP_PROGRAMS_KEY);
+    if (currentDapProgramsSnapshot) localStorage.setItem(DAP_PROGRAMS_SNAPSHOT_KEY, currentDapProgramsSnapshot);
 
     const imported = {...defaultState, ...payload.state};
     imported.attempts = Array.isArray(payload.state.attempts) ? payload.state.attempts : [];
@@ -123,7 +145,8 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(imported));
     if (hasSettings) localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload.settings));
     if (hasFocusSettings) localStorage.setItem(FOCUS_SETTINGS_KEY, JSON.stringify(payload.focusReadingSettings));
-    window.alert(`복원 완료: ${incomingAttempts}회 학습 기록${hasSettings ? ", 환경설정" : ""}${hasFocusSettings ? ", 집중모드 표시 설정" : ""}을 가져왔습니다. 화면을 다시 불러옵니다.`);
+    if (hasDapPrograms) localStorage.setItem(DAP_PROGRAMS_KEY, JSON.stringify(payload.dapchigiPrograms));
+    window.alert(`복원 완료: ${incomingAttempts}회 학습 기록${hasSettings ? ", 환경설정" : ""}${hasFocusSettings ? ", 집중모드 표시 설정" : ""}${hasDapPrograms ? ", 답치기 프로그램" : ""}을 가져왔습니다. 화면을 다시 불러옵니다.`);
     location.reload();
   }
 
@@ -133,12 +156,14 @@
       window.alert("가져오기 직전 임시 백업이 없습니다.");
       return;
     }
-    if (!window.confirm("가장 최근 데이터 가져오기 직전 상태로 되돌리시겠습니까? 학습기록과 함께 저장된 환경설정·집중모드 표시 설정도 복원합니다.")) return;
+    if (!window.confirm("가장 최근 데이터 가져오기 직전 상태로 되돌리시겠습니까? 학습기록과 함께 저장된 환경설정·집중모드 표시 설정·답치기 프로그램도 복원합니다.")) return;
     localStorage.setItem(STORAGE_KEY, snapshot);
     const settingsSnapshot = localStorage.getItem(SETTINGS_SNAPSHOT_KEY);
     if (settingsSnapshot) localStorage.setItem(SETTINGS_KEY, settingsSnapshot);
     const focusSettingsSnapshot = localStorage.getItem(FOCUS_SETTINGS_SNAPSHOT_KEY);
     if (focusSettingsSnapshot) localStorage.setItem(FOCUS_SETTINGS_KEY, focusSettingsSnapshot);
+    const dapProgramsSnapshot = localStorage.getItem(DAP_PROGRAMS_SNAPSHOT_KEY);
+    if (dapProgramsSnapshot) localStorage.setItem(DAP_PROGRAMS_KEY, dapProgramsSnapshot);
     location.reload();
   }
 
@@ -155,7 +180,7 @@
     exportBtn.id = "qtimerExportBtn";
     exportBtn.type = "button";
     exportBtn.textContent = "백업";
-    exportBtn.title = "현재 풀이·취약·정답검증 기록과 환경설정·집중모드 표시 설정을 JSON 파일로 저장";
+    exportBtn.title = "현재 풀이·취약·정답검증 기록과 환경설정·집중모드 표시 설정·답치기 프로그램을 JSON 파일로 저장";
     exportBtn.addEventListener("click", exportLearningData);
 
     const importBtn = document.createElement("button");
@@ -168,7 +193,7 @@
     undoImportBtn.id = "qtimerUndoImportBtn";
     undoImportBtn.type = "button";
     undoImportBtn.textContent = "복원취소";
-    undoImportBtn.title = "가장 최근 가져오기 직전 학습기록·환경설정·집중모드 표시 설정 상태로 되돌리기";
+    undoImportBtn.title = "가장 최근 가져오기 직전 학습기록·환경설정·집중모드 표시 설정·답치기 프로그램 상태로 되돌리기";
     undoImportBtn.addEventListener("click", restorePreImportSnapshot);
 
     const input = document.createElement("input");
