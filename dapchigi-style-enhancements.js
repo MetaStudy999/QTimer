@@ -26,6 +26,13 @@
       body.dapchigi-active mark.dap-highlight.dap-highlight-answer {
         font-weight: 900 !important;
       }
+      html body.dapchigi-active.qt-focus-reading-v2 #studyView #questionText .qt-focus-stem-mark {
+        background: var(--qt-focus-stem-soft,var(--qt-q-highlight,#bfdbfe)) !important;
+        font-weight: 900 !important;
+      }
+      body.qt-focus-reading-v2 .qt-focus-quick-pane[data-qt-focus-quick-pane="question"] .qt-focus-quick-checks {
+        display: none !important;
+      }
     `;
     document.head.appendChild(style);
   }
