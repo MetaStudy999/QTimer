@@ -48,3 +48,14 @@
     document.body.appendChild(script);
   }
 })();
+
+// Semantic choice marking is reveal-only and data-neutral. Keep it outside the core
+// Dapchigi state machine so it can evolve independently without touching learning records.
+(function loadSemanticChoiceMarkingV1(){
+  if (document.querySelector('script[data-qtimer-feature="semantic-choice-marking-v1"]')) return;
+  const script = document.createElement('script');
+  script.src = './semantic-choice-marking-v1.js';
+  script.dataset.qtimerFeature = 'semantic-choice-marking-v1';
+  script.defer = false;
+  document.body.appendChild(script);
+})();
