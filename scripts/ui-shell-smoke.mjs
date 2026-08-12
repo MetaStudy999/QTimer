@@ -104,6 +104,9 @@ try {
 
   // Quick Settings: three targets, live shared Settings v3 updates, and one-step restore to panel-open state.
   const originalQuestionFont = await page.evaluate(()=>globalThis.QTIMER_SETTINGS.get().dapchigi.question.fontFamily);
+  const quickPaneDisplays = async()=>page.evaluate(()=>Object.fromEntries(
+    [...document.querySelectorAll('[data-qt-focus-quick-pane]')].map(pane=>[pane.dataset.qtFocusQuickPane,getComputedStyle(pane).display])
+  ));
   await page.click('#qtFocusQuickBtn');
   await page.waitForFunction(()=>document.querySelector('#qtFocusQuickPanel')?.hidden===false);
   const quickOpen = await page.evaluate(()=>({
@@ -117,6 +120,8 @@ try {
   assert(quickOpen.undoDisabled,'Quick Settings undo should start disabled');
   assert(quickOpen.questionChecksDisplay==='none','Problem Focus invariant controls should not expose bold/highlighter-off toggles');
   assert(!quickOpen.configOpen,'Range overlay and Quick Settings must not remain open together');
+  let visiblePanes=await quickPaneDisplays();
+  assert(visiblePanes.question==='grid' && visiblePanes.answer==='none' && visiblePanes.keyword==='none',`Question tab pane visibility is incorrect: ${JSON.stringify(visiblePanes)}`);
 
   await page.select('#qtFocusQuickQuestionFont','serif');
   await page.waitForFunction(()=>globalThis.QTIMER_SETTINGS.get().dapchigi.question.fontFamily==='serif');
@@ -136,6 +141,9 @@ try {
   });
 
   await page.click('[data-qt-focus-quick-tab="answer"]');
+  await page.waitForFunction(()=>document.querySelector('[data-qt-focus-quick-tab="answer"]')?.getAttribute('aria-selected')==='true');
+  visiblePanes=await quickPaneDisplays();
+  assert(visiblePanes.question==='none' && visiblePanes.answer==='grid' && visiblePanes.keyword==='none',`Answer tab pane visibility is incorrect: ${JSON.stringify(visiblePanes)}`);
   await page.select('#qtFocusQuickAnswerFont','gothic');
   await page.select('#qtFocusQuickAnswerSize','22');
   await page.$eval('#qtFocusQuickAnswerColor',el=>{el.value='#14532d';el.dispatchEvent(new Event('input',{bubbles:true}));});
@@ -148,6 +156,9 @@ try {
   });
 
   await page.click('[data-qt-focus-quick-tab="keyword"]');
+  await page.waitForFunction(()=>document.querySelector('[data-qt-focus-quick-tab="keyword"]')?.getAttribute('aria-selected')==='true');
+  visiblePanes=await quickPaneDisplays();
+  assert(visiblePanes.question==='none' && visiblePanes.answer==='none' && visiblePanes.keyword==='grid',`Keyword tab pane visibility is incorrect: ${JSON.stringify(visiblePanes)}`);
   await page.$eval('#qtFocusKeywordFollow',el=>{el.checked=false;el.dispatchEvent(new Event('change',{bubbles:true}));});
   await page.select('#qtFocusKeywordFont','mono');
   await page.select('#qtFocusKeywordSize','20');
@@ -255,6 +266,7 @@ try {
 
   console.log('# QTimer Focus Reading v2 + Quick Settings v1 smoke');
   console.log('PASS: hidden global menus / independent range overlay / problem+explanation grid');
+  console.log('PASS: Quick Settings visibly switches Question -> Answer -> Keyword with one pane at a time');
   console.log('PASS: problem-answer-keyword Quick Settings / immediate save / panel-open undo / Esc close');
   console.log('PASS: problem focus invariant / custom keyword font+highlight / answer explanation sync');
   console.log('PASS: reveal finalKey+sourceExplanation / O-A-X dock / Dashboard cleanup');
