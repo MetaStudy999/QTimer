@@ -318,7 +318,7 @@
       .qt-dap-program-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.qt-dap-program-head h2{margin:0 0 3px;font-size:17px}.qt-dap-program-head p{margin:0;color:#667085;font-size:12px;line-height:1.5}.qt-dap-program-close{min-width:34px;min-height:34px;border:1px solid #d0d5dd;border-radius:9px;background:#fff;font-weight:900}
       .qt-dap-program-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px;margin:12px 0 8px}.qt-dap-program-toolbar select,.qt-dap-program-toolbar button,.qt-dap-program-name input{min-height:38px;border:1px solid #d0d5dd;border-radius:9px;background:#fff;padding:6px 9px}.qt-dap-program-toolbar button{font-weight:800}
       .qt-dap-program-name{display:grid;grid-template-columns:70px 1fr;align-items:center;gap:8px;font-size:12px;font-weight:850}.qt-dap-program-runbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:10px 0;padding:10px;border:1px solid #e4e7ec;border-radius:11px;background:#f8fafc}.qt-dap-program-toggle{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:850}.qt-dap-program-runbar button{min-height:36px;padding:6px 10px;border:1px solid #315efb;border-radius:9px;background:#315efb;color:#fff;font-weight:850}
-      .qt-dap-program-section{margin-top:14px}.qt-dap-program-section h3{margin:0 0 7px;font-size:13px}.qt-dap-program-add{display:flex;flex-wrap:wrap;gap:6px}.qt-dap-program-add button,.qt-dap-program-template button{min-height:34px;padding:5px 8px;border:1px solid #d0d5dd;border-radius:9px;background:#fff;font-size:12px;font-weight:800}.qt-dap-program-add button[data-type^="repeat"]{background:#fff7ed;border-color:#fed7aa}
+      .qt-dap-program-section{margin-top:14px}.qt-dap-program-section h3{margin:0 0 7px;font-size:13px}.qt-dap-program-add{display:flex;flex-wrap:wrap;gap:6px}.qt-dap-program-add button,.qt-dap-program-template button{min-height:34px;padding:5px 8px;border:1px solid #d0d5dd;border-radius:9px;background:#fff;font-size:12px;font-weight:800}.qt-dap-program-add button[data-qt-program-add^="repeat"]{background:#fff7ed;border-color:#fed7aa}
       .qt-dap-program-template{display:flex;gap:6px;flex-wrap:wrap}.qt-dap-program-template small{width:100%;color:#667085}
       .qt-dap-program-list{display:grid;gap:7px;margin-top:8px}.qt-dap-program-block{display:grid;grid-template-columns:30px 28px minmax(0,1fr) auto;align-items:center;gap:7px;padding:9px 9px 9px calc(9px + var(--qt-program-depth,0)*18px);border:1px solid #d0d5dd;border-radius:11px;background:#fff;transition:transform .12s ease,box-shadow .12s ease}.qt-dap-program-block.dragging{opacity:.55;box-shadow:0 8px 24px rgba(16,24,40,.16)}.qt-dap-program-block.repeat{background:#fffaf5;border-color:#fdba74}.qt-dap-program-handle{cursor:grab;border:0;background:transparent;color:#667085;font-size:18px}.qt-dap-program-index{font-size:11px;color:#98a2b3;text-align:center}.qt-dap-program-info{display:grid;gap:2px;min-width:0}.qt-dap-program-info strong{font-size:13px}.qt-dap-program-info small{font-size:11px;color:#667085;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qt-dap-program-actions{display:flex;align-items:center;gap:4px}.qt-dap-program-actions button{width:30px;height:30px;padding:0;border:1px solid #d0d5dd;border-radius:8px;background:#fff}.qt-dap-repeat-count{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:800}.qt-dap-repeat-count input{width:58px;min-height:30px;border:1px solid #d0d5dd;border-radius:7px;padding:3px 5px}
       .qt-dap-program-validation{margin-top:10px;padding:10px 12px;border-radius:10px;background:#ecfdf3;color:#166534;font-size:12px;line-height:1.55}.qt-dap-program-validation.error{background:#fef2f2;color:#991b1b}.qt-dap-program-validation ul{margin:5px 0 0;padding-left:18px}.qt-dap-program-preview{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.qt-dap-program-preview span{display:inline-flex;align-items:center;min-height:28px;padding:3px 7px;border-radius:999px;background:#eef2ff;color:#344054;font-size:11px;font-weight:800}.qt-dap-program-preview span.rate{background:#fee2e2;color:#991b1b}
@@ -428,16 +428,18 @@
     if (!document.querySelector("#qtFocusQuickPanel")?.hidden) document.querySelector("#qtFocusQuickClose")?.click();
     const panel=document.querySelector("#qtDapProgramPanel");
     if (!panel) return;
-    panel.hidden=false;
-    document.body.classList.add("qt-dap-program-open");
-    document.querySelector("#qtDapProgramBtn")?.setAttribute("aria-expanded","true");
+    if (panel.hidden) panel.hidden=false;
+    if (!document.body.classList.contains("qt-dap-program-open")) document.body.classList.add("qt-dap-program-open");
+    const button=document.querySelector("#qtDapProgramBtn");
+    if (button?.getAttribute("aria-expanded")!=="true") button?.setAttribute("aria-expanded","true");
     renderEditor();
   }
   function closePanel(){
     const panel=document.querySelector("#qtDapProgramPanel");
-    if (panel) panel.hidden=true;
-    document.body.classList.remove("qt-dap-program-open");
-    document.querySelector("#qtDapProgramBtn")?.setAttribute("aria-expanded","false");
+    if (panel && !panel.hidden) panel.hidden=true;
+    if (document.body.classList.contains("qt-dap-program-open")) document.body.classList.remove("qt-dap-program-open");
+    const button=document.querySelector("#qtDapProgramBtn");
+    if (button?.getAttribute("aria-expanded")!=="false") button?.setAttribute("aria-expanded","false");
   }
   function togglePanel(){
     const panel=document.querySelector("#qtDapProgramPanel");
@@ -669,12 +671,18 @@
       requestAnimationFrame(()=>{ if (store.enabled && focusActive()) startProgram(); });
     });
 
+    let lastFocusActive=focusActive();
     new MutationObserver(()=>{
-      if (!focusActive()) {
-        closePanel();
-        runtime=null;
-      } else if (store.enabled && !runtime) {
-        requestAnimationFrame(()=>{ if(programActive() && !runtime) startProgram(); });
+      const isFocusActive=focusActive();
+      if (isFocusActive!==lastFocusActive) {
+        lastFocusActive=isFocusActive;
+        if (!isFocusActive) {
+          const panel=document.querySelector("#qtDapProgramPanel");
+          if ((panel && !panel.hidden) || document.body.classList.contains("qt-dap-program-open")) closePanel();
+          runtime=null;
+        } else if (store.enabled && !runtime) {
+          requestAnimationFrame(()=>{ if(programActive() && !runtime) startProgram(); });
+        }
       }
       renderRuntimeChip();
     }).observe(document.body,{attributes:true,attributeFilter:["class"]});
