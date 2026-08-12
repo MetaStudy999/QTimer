@@ -85,11 +85,32 @@
         && dapPanel.hidden === false;
     }
 
+    function programRuntimeEntry(){
+      const api = globalThis.QTIMER_DAP_PROGRAMS;
+      if (!api?.get || !api?.runtime) return null;
+      const stored = api.get();
+      if (!stored?.enabled) return null;
+      const runtime = api.runtime();
+      return runtime?.compiled?.[runtime.index] || null;
+    }
+
     function setDockState(){
       const step = state?.dapchigiV1?.step || "preview";
       const reveal = step === "reveal";
       const space = dock.querySelector('[data-action="space"]');
       const ratingButtons = [...dock.querySelectorAll('[data-action="o"],[data-action="a"],[data-action="x"]')];
+      const programEntry = programRuntimeEntry();
+
+      // A user program may intentionally continue after a reveal step (for example,
+      // reveal -> question -> reveal inside a repeat block). In that case the visual
+      // program, not the legacy fixed reveal rule, decides whether Space or O/A/X is active.
+      if (programEntry) {
+        const waitingForRating = programEntry.type === "rate";
+        if (space) space.disabled = waitingForRating;
+        ratingButtons.forEach(button => { button.disabled = !waitingForRating; });
+        return;
+      }
+
       if (space) space.disabled = reveal;
       ratingButtons.forEach(button => { button.disabled = !reveal; });
     }
