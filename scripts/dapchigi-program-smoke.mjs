@@ -136,7 +136,12 @@ try {
   assert(ratingStage.explanation.includes('문제집 해설'),'Program rating stage must reveal the answer explanation');
 
   await page.click('#qtActionDock [data-action="a"]');
-  await page.waitForFunction(()=>state.dapchigiV1?.attempts?.length===1 && state.currentIndex===1 && globalThis.QTIMER_DAP_PROGRAMS.runtime()?.index===0 && state.dapchigiV1?.step==='preview');
+  await page.waitForFunction(()=>state.dapchigiV1?.attempts?.length===1
+    && state.currentIndex===1
+    && globalThis.QTIMER_DAP_PROGRAMS.runtime()?.index===0
+    && state.dapchigiV1?.step==='preview'
+    && document.querySelector('#qtContextPosition')?.textContent==='2 / 52'
+    && document.querySelector('#qtDapProgramRuntimeChip')?.textContent.includes('반복 회상 프로그램'));
   const afterRating=await page.evaluate(()=>({
     rating:state.dapchigiV1.attempts.at(-1)?.rating,
     position:document.querySelector('#qtContextPosition').textContent,
