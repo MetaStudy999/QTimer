@@ -147,6 +147,19 @@
       configBtn?.setAttribute("aria-expanded", String(Boolean(open) && active()));
     }
 
+    function cleanFocusPresentation(){
+      document.body.classList.remove("qt-focus-reading-v2", "qt-focus-config-open");
+      explanation.hidden = true;
+      actions.hidden = true;
+      configBtn?.setAttribute("aria-expanded", "false");
+      wasActive = false;
+    }
+
+    function exitFocus(){
+      cleanFocusPresentation();
+      document.querySelector("#dashboardTab")?.click();
+    }
+
     function renderStem(){
       if (!active()) return;
       const q = currentQuestion();
@@ -195,8 +208,7 @@
       actions.hidden = !isActive;
 
       if (!isActive) {
-        setConfigOpen(false);
-        wasActive = false;
+        cleanFocusPresentation();
         return;
       }
 
@@ -211,7 +223,9 @@
     }
 
     configBtn?.addEventListener("click", () => setConfigOpen(!document.body.classList.contains("qt-focus-config-open")));
-    exitBtn?.addEventListener("click", () => document.querySelector("#dashboardTab")?.click());
+    exitBtn?.addEventListener("click", exitFocus);
+    document.querySelector("#dashboardTab")?.addEventListener("click", () => requestAnimationFrame(() => requestAnimationFrame(sync)));
+    document.querySelector("#dapchigiTab")?.addEventListener("click", () => requestAnimationFrame(() => requestAnimationFrame(sync)));
     document.querySelector("#dapApplyScope")?.addEventListener("click", () => {
       requestAnimationFrame(() => { setConfigOpen(false); sync(); });
     });
@@ -220,7 +234,7 @@
       if (event.key !== "Escape" || !active()) return;
       event.preventDefault();
       if (document.body.classList.contains("qt-focus-config-open")) setConfigOpen(false);
-      else document.querySelector("#dashboardTab")?.click();
+      else exitFocus();
     }, {capture:true});
 
     const stageChip = document.querySelector("#dapStageChip");
