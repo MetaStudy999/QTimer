@@ -86,7 +86,6 @@ jobs:
             echo 'Chrome/Chromium executable not found on runner.' >&2
             exit 1
           fi
-
           set +e
           output="$(CHROME_BIN="$CHROME_BIN" QTIMER_URL="http://127.0.0.1:8080" node scripts/browser-smoke.mjs 2>&1)"
           status=$?
@@ -110,7 +109,6 @@ jobs:
             echo 'Chrome/Chromium executable not found on runner.' >&2
             exit 1
           fi
-
           set +e
           output="$(CHROME_BIN="$CHROME_BIN" QTIMER_URL="http://127.0.0.1:8080" node scripts/settings-smoke.mjs 2>&1)"
           status=$?
@@ -134,7 +132,6 @@ jobs:
             echo 'Chrome/Chromium executable not found on runner.' >&2
             exit 1
           fi
-
           set +e
           output="$(CHROME_BIN="$CHROME_BIN" QTIMER_URL="http://127.0.0.1:8080" node scripts/ui-shell-smoke.mjs 2>&1)"
           status=$?
@@ -158,7 +155,6 @@ jobs:
             echo 'Chrome/Chromium executable not found on runner.' >&2
             exit 1
           fi
-
           set +e
           output="$(CHROME_BIN="$CHROME_BIN" QTIMER_URL="http://127.0.0.1:8080" node scripts/semantic-marking-smoke.mjs 2>&1)"
           status=$?
@@ -182,7 +178,6 @@ jobs:
             echo 'Chrome/Chromium executable not found on runner.' >&2
             exit 1
           fi
-
           set +e
           output="$(CHROME_BIN="$CHROME_BIN" QTIMER_URL="http://127.0.0.1:8080" node scripts/dapchigi-program-smoke.mjs 2>&1)"
           status=$?
@@ -191,5 +186,28 @@ jobs:
           if [[ $status -ne 0 ]]; then
             summary="$(printf '%s\n' "$output" | tail -n 8 | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')"
             echo "::error title=QTimer Dapchigi Program Builder smoke::${summary}"
+            exit "$status"
+          fi
+
+      - name: Browser smoke - Dapchigi Live Format Editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || true)"
+          [[ -n "$CHROME_BIN" ]] || CHROME_BIN="$(command -v google-chrome-stable || true)"
+          [[ -n "$CHROME_BIN" ]] || CHROME_BIN="$(command -v chromium || true)"
+          [[ -n "$CHROME_BIN" ]] || CHROME_BIN="$(command -v chromium-browser || true)"
+          if [[ -z "$CHROME_BIN" ]]; then
+            echo 'Chrome/Chromium executable not found on runner.' >&2
+            exit 1
+          fi
+          set +e
+          output="$(CHROME_BIN="$CHROME_BIN" QTIMER_URL="http://127.0.0.1:8080" node scripts/format-editor-smoke.mjs 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [[ $status -ne 0 ]]; then
+            summary="$(printf '%s\n' "$output" | tail -n 8 | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')"
+            echo "::error title=QTimer Dapchigi Live Format Editor smoke::${summary}"
             exit "$status"
           fi
