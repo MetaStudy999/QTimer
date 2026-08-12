@@ -38,6 +38,12 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
+/* `hidden` is a semantic visibility contract. Author component styles must never
+   override it; otherwise inactive Quick Settings tabs stack on screen. */
+.qt-focus-quick-pane[hidden] {
+  display: none !important;
+}
+
 .qt-study-context {
   display: none;
   align-items: center;
