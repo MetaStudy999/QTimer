@@ -4,6 +4,8 @@
   const SETTINGS_KEY = "qtimer-settings-v2";
   const LEGACY_SETTINGS_KEY = "qtimer-settings-v1";
   const SETTINGS_SNAPSHOT_KEY = `${SETTINGS_KEY}-preimport`;
+  const FOCUS_SETTINGS_KEY = "qtimer-focus-quick-settings-v1";
+  const FOCUS_SETTINGS_SNAPSHOT_KEY = `${FOCUS_SETTINGS_KEY}-preimport`;
 
   function currentAttemptCount(){
     return Array.isArray(state?.attempts) ? state.attempts.length : 0;
@@ -23,9 +25,22 @@
     return null;
   }
 
+  function readStoredFocusSettings(){
+    try {
+      const parsed = JSON.parse(localStorage.getItem(FOCUS_SETTINGS_KEY));
+      if (validObject(parsed)) return parsed;
+    } catch {}
+    return null;
+  }
+
   function currentSettings(){
     if (globalThis.QTIMER_SETTINGS?.get) return globalThis.QTIMER_SETTINGS.get();
     return readStoredSettings();
+  }
+
+  function currentFocusSettings(){
+    if (globalThis.QTIMER_FOCUS_QUICK_SETTINGS?.get) return globalThis.QTIMER_FOCUS_QUICK_SETTINGS.get();
+    return readStoredFocusSettings();
   }
 
   function exportPayload(){
@@ -37,7 +52,8 @@
       questionBankVersion: state.questionBankVersion || (typeof buildQuestionBankVersion === "function" ? buildQuestionBankVersion() : null),
       questionCount: QUESTIONS.length,
       state: JSON.parse(JSON.stringify(state)),
-      settings: currentSettings()
+      settings: currentSettings(),
+      focusReadingSettings: currentFocusSettings()
     };
   }
 
@@ -71,6 +87,9 @@
     if (payload.settings != null && !validObject(payload.settings)) {
       throw new Error("환경설정 데이터가 올바르지 않습니다.");
     }
+    if (payload.focusReadingSettings != null && !validObject(payload.focusReadingSettings)) {
+      throw new Error("집중모드 빠른 표시 설정 데이터가 올바르지 않습니다.");
+    }
     return payload;
   }
 
@@ -80,8 +99,9 @@
     const incomingAttempts = payload.state.attempts.length;
     const currentAttempts = currentAttemptCount();
     const hasSettings = validObject(payload.settings);
+    const hasFocusSettings = validObject(payload.focusReadingSettings);
     const ok = window.confirm(
-      `QTimer 학습 데이터를 복원합니다.\n\n현재 기록: ${currentAttempts}회\n가져올 기록: ${incomingAttempts}회\n환경설정 포함: ${hasSettings ? "예" : "아니오"}\n\n현재 상태는 브라우저 내부 임시 백업으로 1회 보관한 뒤 교체됩니다. 계속하시겠습니까?`
+      `QTimer 학습 데이터를 복원합니다.\n\n현재 기록: ${currentAttempts}회\n가져올 기록: ${incomingAttempts}회\n환경설정 포함: ${hasSettings ? "예" : "아니오"}\n집중모드 표시 설정 포함: ${hasFocusSettings ? "예" : "아니오"}\n\n현재 상태는 브라우저 내부 임시 백업으로 1회 보관한 뒤 교체됩니다. 계속하시겠습니까?`
     );
     if (!ok) return;
 
@@ -89,6 +109,8 @@
     if (currentSnapshot) localStorage.setItem(SNAPSHOT_KEY, currentSnapshot);
     const currentSettingsSnapshot = localStorage.getItem(SETTINGS_KEY) || localStorage.getItem(LEGACY_SETTINGS_KEY);
     if (currentSettingsSnapshot) localStorage.setItem(SETTINGS_SNAPSHOT_KEY, currentSettingsSnapshot);
+    const currentFocusSettingsSnapshot = localStorage.getItem(FOCUS_SETTINGS_KEY);
+    if (currentFocusSettingsSnapshot) localStorage.setItem(FOCUS_SETTINGS_SNAPSHOT_KEY, currentFocusSettingsSnapshot);
 
     const imported = {...defaultState, ...payload.state};
     imported.attempts = Array.isArray(payload.state.attempts) ? payload.state.attempts : [];
@@ -100,7 +122,8 @@
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(imported));
     if (hasSettings) localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload.settings));
-    window.alert(`복원 완료: ${incomingAttempts}회 학습 기록${hasSettings ? "과 환경설정" : ""}을 가져왔습니다. 화면을 다시 불러옵니다.`);
+    if (hasFocusSettings) localStorage.setItem(FOCUS_SETTINGS_KEY, JSON.stringify(payload.focusReadingSettings));
+    window.alert(`복원 완료: ${incomingAttempts}회 학습 기록${hasSettings ? ", 환경설정" : ""}${hasFocusSettings ? ", 집중모드 표시 설정" : ""}을 가져왔습니다. 화면을 다시 불러옵니다.`);
     location.reload();
   }
 
@@ -110,10 +133,12 @@
       window.alert("가져오기 직전 임시 백업이 없습니다.");
       return;
     }
-    if (!window.confirm("가장 최근 데이터 가져오기 직전 상태로 되돌리시겠습니까? 학습기록과 함께 저장된 환경설정도 복원합니다.")) return;
+    if (!window.confirm("가장 최근 데이터 가져오기 직전 상태로 되돌리시겠습니까? 학습기록과 함께 저장된 환경설정·집중모드 표시 설정도 복원합니다.")) return;
     localStorage.setItem(STORAGE_KEY, snapshot);
     const settingsSnapshot = localStorage.getItem(SETTINGS_SNAPSHOT_KEY);
     if (settingsSnapshot) localStorage.setItem(SETTINGS_KEY, settingsSnapshot);
+    const focusSettingsSnapshot = localStorage.getItem(FOCUS_SETTINGS_SNAPSHOT_KEY);
+    if (focusSettingsSnapshot) localStorage.setItem(FOCUS_SETTINGS_KEY, focusSettingsSnapshot);
     location.reload();
   }
 
@@ -130,7 +155,7 @@
     exportBtn.id = "qtimerExportBtn";
     exportBtn.type = "button";
     exportBtn.textContent = "백업";
-    exportBtn.title = "현재 풀이·취약·정답검증 기록과 환경설정을 JSON 파일로 저장";
+    exportBtn.title = "현재 풀이·취약·정답검증 기록과 환경설정·집중모드 표시 설정을 JSON 파일로 저장";
     exportBtn.addEventListener("click", exportLearningData);
 
     const importBtn = document.createElement("button");
@@ -143,7 +168,7 @@
     undoImportBtn.id = "qtimerUndoImportBtn";
     undoImportBtn.type = "button";
     undoImportBtn.textContent = "복원취소";
-    undoImportBtn.title = "가장 최근 가져오기 직전 학습기록·환경설정 상태로 되돌리기";
+    undoImportBtn.title = "가장 최근 가져오기 직전 학습기록·환경설정·집중모드 표시 설정 상태로 되돌리기";
     undoImportBtn.addEventListener("click", restorePreImportSnapshot);
 
     const input = document.createElement("input");
