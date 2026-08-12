@@ -34,9 +34,16 @@
 - Design Token foundation 구현 완료
 - 답치기 Study Context Bar 구현 완료
 - 답치기 자동 Focus Mode 구현 완료
-- 문제 읽기 최대폭 foundation 구현 완료
 - Space/O/A/X Bottom Action Dock 구현 완료
-- Focus Study Shell Browser E2E 추가
+- Semantic Choice Marking v1 구현 완료: 빨강 `● 선택`, 부정형 파랑 `✓ 부합`, 취소선 없음
+- Focus Reading v2 구현: 문제 전체 연한 형광 + 핵심어 진한색/흰 글자
+- Focus Reading 강조색과 Settings v3 문제 테마 연동
+- 데스크톱 문제/해설 2열, 1080px 이하 1열 반응형 구현
+- reveal 전 해설 잠금 / reveal 후 정답·핵심·문제집 해설 공개
+- 답치기 범위 적용 후 전역 메뉴와 설정 패널 자동 숨김
+- `범위·표시 ⚙` 임시 설정 overlay 및 `집중 종료 Esc` 구현
+- Focus Study Shell Browser E2E 운영
+- Semantic Choice Marking Browser E2E 운영
 - GitHub Actions 회귀 QA 운영 중
 - 개발 검증 환경을 GitHub + Local WSL로 확정
 - Vercel은 최종 Production 배포 전까지 사용 보류
@@ -130,6 +137,23 @@
    - UI-7 Accessibility
    - 각 PR 범위와 QA Gate
 
+10. `docs/design/semantic-choice-marking-v1.md`
+   - 정답은 빨강 `● 선택`
+   - 부정형의 비정답 선지는 파랑 `✓ 부합`
+   - 긍정형은 정답만 의미 마킹
+   - 판별 불확실 시 정답만 표시하는 보수적 fallback
+   - 취소선 사용 금지
+   - reveal-only 의미 피드백
+
+11. `docs/design/dapchigi-focus-reading-v2.md`
+   - 문제/해설 중심 Focus Reading Shell
+   - 문제 전체 연한 형광 배경
+   - 문제 문장에서만 추출한 핵심어의 진한 배경 + 흰색 글자
+   - Settings v3 문제 형광펜 색상과 자동 연동
+   - reveal 전 해설 잠금, reveal 후 정답·finalKey·sourceExplanation 공개
+   - 전역 메뉴/설정 패널 숨김 및 on-demand 설정 overlay
+   - Desktop 2열 / Tablet·Mobile 1열
+
 ## 설계 기준
 
 - 973문항 SOURCE BANK의 문제/정답 provenance를 변경하지 않는다.
@@ -147,6 +171,9 @@
 - 화면 확대/축소는 학습 점수나 문항 상태에 영향을 주지 않는다.
 - 색상 테마는 학습 성과를 보장하는 절대 기준이 아니라 QTimer 권장 프리셋으로 제공한다.
 - 테마를 선택해도 사용자가 폰트색/형광펜색을 직접 수정할 수 있다.
+- Focus Reading의 전체 문제 형광색은 Settings v3 문제 형광펜색을 상속하고, 핵심어 색상은 같은 계열에서 자동 파생한다.
+- Focus Reading의 핵심어는 정답·finalKey·해설에서 추출하지 않고 문제 문장 자체에서만 추출한다.
+- 해설은 회상을 방해하지 않도록 reveal 전에는 잠근다.
 - 시스템 UI 색상과 문제/답 학습 색상은 분리한다.
 - 분석 화면은 정보를 충분히 제공하고 학습/시험 화면은 방해 요소를 최소화한다.
 - UI 리팩터링 때문에 SOURCE BANK 또는 학습 데이터 스키마를 변경하지 않는다.
@@ -201,7 +228,7 @@ Vercel은 일반 개발/디버깅/중간 확인에 사용하지 않는다.
 
 ### UI/UX Lane
 
-현재 UI-0 / UI-1 기반 구현까지 완료한다.
+UI-0 Foundation과 UI-1 Focus Study / Focus Reading v2까지 구현한다.
 
 Local WSL에서 실제 사용성을 확인한 뒤 다음 순서는:
 
@@ -213,7 +240,7 @@ UI-2 Application Sidebar
 → UI-6 Settings Basic/Advanced + Quick Settings
 ```
 
-Sidebar 전환은 현재 Focus Study foundation이 실제 학습에서 안정적인 것을 확인한 후 별도 PR로 진행한다.
+Sidebar 전환은 현재 Focus Study / Focus Reading foundation이 실제 학습에서 안정적인 것을 확인한 후 별도 PR로 진행한다.
 
 ### 이후
 
