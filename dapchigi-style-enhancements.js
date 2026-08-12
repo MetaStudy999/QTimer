@@ -21,7 +21,9 @@
     const style = document.createElement('style');
     style.id = 'dapchigiBoldHighlightStyles';
     style.textContent = `
-      body.dapchigi-active mark.dap-highlight {
+      body.dapchigi-active mark.dap-highlight,
+      body.dapchigi-active mark.dap-highlight.dap-highlight-question,
+      body.dapchigi-active mark.dap-highlight.dap-highlight-answer {
         font-weight: 900 !important;
       }
     `;
