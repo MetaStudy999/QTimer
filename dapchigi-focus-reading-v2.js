@@ -73,10 +73,12 @@
     style.id = "qtDapFocusReadingV2Styles";
     style.textContent = `
       :root{
-        --qt-focus-stem-soft:var(--qt-q-highlight,#bfdbfe);
-        --qt-focus-keyword:color-mix(in srgb,var(--qt-q-highlight,#bfdbfe) 38%,#111827 62%);
         --qt-focus-explain-bg:#ffffff;
         --qt-focus-explain-muted:#667085;
+      }
+      body.qt-focus-reading-v2{
+        --qt-focus-stem-soft:var(--qt-q-highlight,#bfdbfe);
+        --qt-focus-keyword:color-mix(in srgb,var(--qt-q-highlight,#bfdbfe) 38%,#111827 62%);
       }
       body.qt-focus-reading-v2 .app-header{display:none!important}
       body.qt-focus-reading-v2 .qt-study-context{position:sticky;top:8px;z-index:70;margin-top:8px;background:rgba(255,255,255,.94);backdrop-filter:blur(12px)}
