@@ -33,6 +33,14 @@
       body.qt-focus-reading-v2 .qt-focus-quick-pane[data-qt-focus-quick-pane="question"] .qt-focus-quick-checks {
         display: none !important;
       }
+      .qt-format-preview-canvas.device-tablet {
+        width: min(100%,820px) !important;
+        max-width: 820px !important;
+      }
+      .qt-format-preview-canvas.device-mobile {
+        width: min(100%,390px) !important;
+        max-width: 390px !important;
+      }
     `;
     document.head.appendChild(style);
   }
