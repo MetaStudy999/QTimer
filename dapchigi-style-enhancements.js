@@ -33,6 +33,14 @@
       body.qt-focus-reading-v2 .qt-focus-quick-pane[data-qt-focus-quick-pane="question"] .qt-focus-quick-checks {
         display: none !important;
       }
+      .qt-format-preview-canvas.device-tablet {
+        width: min(100%,820px) !important;
+        max-width: 820px !important;
+      }
+      .qt-format-preview-canvas.device-mobile {
+        width: min(100%,390px) !important;
+        max-width: 390px !important;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -99,6 +107,17 @@
   const script = document.createElement('script');
   script.src = './dapchigi-program-builder-v1.js';
   script.dataset.qtimerFeature = 'dapchigi-program-builder-v1';
+  script.defer = false;
+  document.body.appendChild(script);
+})();
+
+// Live Format Editor v1 is a WYSIWYG presentation editor. It reads the real current question
+// into an isolated preview and never changes study position, attempts, ratings, or SOURCE BANK.
+(function loadDapchigiLiveFormatEditorV1(){
+  if (document.querySelector('script[data-qtimer-feature="dapchigi-live-format-editor-v1"]')) return;
+  const script = document.createElement('script');
+  script.src = './dapchigi-live-format-editor-v1.js';
+  script.dataset.qtimerFeature = 'dapchigi-live-format-editor-v1';
   script.defer = false;
   document.body.appendChild(script);
 })();
