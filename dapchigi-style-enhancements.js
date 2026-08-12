@@ -90,3 +90,15 @@
   script.defer = false;
   document.body.appendChild(script);
 })();
+
+// Dapchigi Program Builder v1 lets users visually compose the answer-training order,
+// including drag reordering and bounded repeat blocks. It waits for Focus Reading at boot,
+// so loading it here does not change the verified question-bank boot sequence.
+(function loadDapchigiProgramBuilderV1(){
+  if (document.querySelector('script[data-qtimer-feature="dapchigi-program-builder-v1"]')) return;
+  const script = document.createElement('script');
+  script.src = './dapchigi-program-builder-v1.js';
+  script.dataset.qtimerFeature = 'dapchigi-program-builder-v1';
+  script.defer = false;
+  document.body.appendChild(script);
+})();

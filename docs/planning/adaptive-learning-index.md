@@ -1,6 +1,6 @@
 # QTimer Adaptive Learning v1 문서 인덱스
 
-기준일: 2026-08-12
+기준일: 2026-08-13
 
 ## 현재 단계
 
@@ -42,8 +42,12 @@
 - reveal 전 해설 잠금 / reveal 후 정답·핵심·문제집 해설 공개
 - 답치기 범위 적용 후 전역 메뉴와 설정 패널 자동 숨김
 - `범위·표시 ⚙` 임시 설정 overlay 및 `집중 종료 Esc` 구현
+- 답치기 Focus Quick Settings: 문제/답/핵심어 즉시 조절 구현 완료
+- Dapchigi Program Builder v1: 사용자 정의 답치기 순서·Drag & Drop·반복 블록 구현
+- 답치기 프로그램을 전체 QTimer 백업/복원에 포함
 - Focus Study Shell Browser E2E 운영
 - Semantic Choice Marking Browser E2E 운영
+- Dapchigi Program Builder Browser E2E 운영
 - GitHub Actions 회귀 QA 운영 중
 - 개발 검증 환경을 GitHub + Local WSL로 확정
 - Vercel은 최종 Production 배포 전까지 사용 보류
@@ -154,6 +158,17 @@
    - 전역 메뉴/설정 패널 숨김 및 on-demand 설정 overlay
    - Desktop 2열 / Tablet·Mobile 1열
 
+12. `docs/design/dapchigi-program-builder-v1.md`
+   - Visual Block 기반 답치기 프로그램
+   - 프로그램 생성/복제/삭제/이름 저장
+   - 단계 추가 및 마우스 Drag & Drop / ↑↓ 순서 조정
+   - 반복 시작 × N / 반복 끝
+   - 중첩 반복 금지 및 구조 검증
+   - compiled steps 실행 모델
+   - O/A/X 평가 후 다음 문제에서 프로그램 첫 단계 복귀
+   - Program OFF 시 기존 답치기 흐름 유지
+   - 전체 QTimer 백업/복원 연동
+
 ## 설계 기준
 
 - 973문항 SOURCE BANK의 문제/정답 provenance를 변경하지 않는다.
@@ -166,6 +181,9 @@
 - 직후 점수보다 지연 Retention과 Transfer를 별도 측정한다.
 - 사용자 심리 상태는 진단하지 않고 학습 조건 조정에만 사용한다.
 - 학습기록과 UI 환경설정을 논리적으로 분리한다.
+- 답치기 프로그램 정의는 SOURCE BANK/Attempt와 분리된 사용자 Workflow Preference로 저장한다.
+- 사용자 프로그램은 표시/순서를 제어하되 O/A/X 기록은 기존 Dapchigi Attempt 경로를 재사용한다.
+- 잘못된 사용자 프로그램은 데이터는 보존하되 실행을 차단하는 fail-safe 정책을 사용한다.
 - 환경설정은 버전 관리하고 이전 답치기 style 값 및 설정 파일과 호환한다.
 - 외부 폰트 파일을 번들하지 않고 OS 폰트 fallback stack을 사용한다.
 - 화면 확대/축소는 학습 점수나 문항 상태에 영향을 주지 않는다.
@@ -244,6 +262,8 @@ Sidebar 전환은 현재 Focus Study / Focus Reading foundation이 실제 학습
 
 ### 이후
 
+- 조건형 답치기 프로그램(A/X일 때 추가 반복 등)
+- 회독별 답치기 프로그램 자동 전환
 - 단원 무힌트 모의고사
 - 모의고사 오답 재시험
 - 100점/숙달 조건
