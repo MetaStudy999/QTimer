@@ -102,3 +102,14 @@
   script.defer = false;
   document.body.appendChild(script);
 })();
+
+// Live Format Editor v1 is a WYSIWYG presentation editor. It reads the real current question
+// into an isolated preview and never changes study position, attempts, ratings, or SOURCE BANK.
+(function loadDapchigiLiveFormatEditorV1(){
+  if (document.querySelector('script[data-qtimer-feature="dapchigi-live-format-editor-v1"]')) return;
+  const script = document.createElement('script');
+  script.src = './dapchigi-live-format-editor-v1.js';
+  script.dataset.qtimerFeature = 'dapchigi-live-format-editor-v1';
+  script.defer = false;
+  document.body.appendChild(script);
+})();
