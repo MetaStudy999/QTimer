@@ -75,6 +75,18 @@ function restoreSnapshot(storage, snapshot) {
   }
 }
 
+function readSnapshot(storage, snapshotKey) {
+  const snapshotRaw = storage.getItem(snapshotKey);
+  if (!snapshotRaw) return null;
+  let snapshot;
+  try { snapshot = JSON.parse(snapshotRaw); }
+  catch { throw new Error("Pre-import snapshot is corrupted"); }
+  if (!snapshot || typeof snapshot !== "object" || !snapshot.entries || typeof snapshot.entries !== "object" || Array.isArray(snapshot.entries)) {
+    throw new Error("Pre-import snapshot has invalid shape");
+  }
+  return snapshot;
+}
+
 /**
  * Commits an already validated import plan.
  * No validation/migration is performed after the first persistent write.
@@ -96,7 +108,6 @@ export function commitImportPlan(plan, storage, options = {}) {
     writeKeys
   };
 
-  // Snapshot is saved before the staging marker and before any module write.
   storage.setItem(snapshotKey, JSON.stringify({ version: 1, createdAt: transaction.createdAt, entries: snapshot }));
   storage.setItem(stagingKey, JSON.stringify(transaction));
 
@@ -115,21 +126,27 @@ export function commitImportPlan(plan, storage, options = {}) {
   }
 }
 
+/** Restore the most recent successful import's pre-import snapshot. */
+export function restorePreImportSnapshot(storage, options = {}) {
+  requireStorage(storage);
+  const snapshotKey = String(options.snapshotKey || "qtimer.v2.preimport-snapshot");
+  const stagingKey = String(options.stagingKey || "qtimer.v2.import-staging");
+  if (storage.getItem(stagingKey)) throw new Error("Cannot undo import while an interrupted import marker exists; recover it first");
+  const snapshot = readSnapshot(storage, snapshotKey);
+  if (!snapshot) return { restored: false, reason: "no-snapshot" };
+  restoreSnapshot(storage, snapshot.entries);
+  if (options.clearSnapshot === true) storage.removeItem(snapshotKey);
+  return { restored: true, restoredKeys: Object.keys(snapshot.entries).length, createdAt: snapshot.createdAt || null };
+}
+
 export function recoverInterruptedImport(storage, options = {}) {
   requireStorage(storage);
   const stagingKey = String(options.stagingKey || "qtimer.v2.import-staging");
   const snapshotKey = String(options.snapshotKey || "qtimer.v2.preimport-snapshot");
   const marker = storage.getItem(stagingKey);
   if (!marker) return { recovered: false, reason: "no-staging-marker" };
-  const snapshotRaw = storage.getItem(snapshotKey);
-  if (!snapshotRaw) throw new Error("Interrupted import detected but pre-import snapshot is missing");
-
-  let snapshot;
-  try { snapshot = JSON.parse(snapshotRaw); }
-  catch { throw new Error("Interrupted import snapshot is corrupted"); }
-  if (!snapshot || typeof snapshot !== "object" || !snapshot.entries || typeof snapshot.entries !== "object") {
-    throw new Error("Interrupted import snapshot has invalid shape");
-  }
+  const snapshot = readSnapshot(storage, snapshotKey);
+  if (!snapshot) throw new Error("Interrupted import detected but pre-import snapshot is missing");
   restoreSnapshot(storage, snapshot.entries);
   storage.removeItem(stagingKey);
   return { recovered: true, restoredKeys: Object.keys(snapshot.entries).length };
