@@ -1,0 +1,31 @@
+name: QTimer V2 Foundation QA
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - "refactor/**"
+
+permissions:
+  contents: read
+
+jobs:
+  v2-foundation-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: V2 domain contract - content zones and Cloze Transform
+        run: node scripts/v2-domain-smoke.mjs
+
+      - name: V2 data contract - storage registry and backup inventory
+        run: node scripts/v2-storage-registry-smoke.mjs
