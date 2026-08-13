@@ -38,3 +38,6 @@ jobs:
 
       - name: V2 backup contract - validate stage commit rollback recovery
         run: node scripts/v2-backup-transaction-smoke.mjs
+
+      - name: V2 security contract - content escaping and URL policy
+        run: node scripts/v2-security-smoke.mjs
