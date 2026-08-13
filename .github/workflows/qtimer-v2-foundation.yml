@@ -54,6 +54,9 @@ jobs:
       - name: V2 canonical data contract - all persistent modules and backup coverage
         run: node scripts/v2-canonical-storage-smoke.mjs
 
+      - name: V2 migration contract - conservative Format and Program conversion
+        run: node scripts/v2-legacy-migration-smoke.mjs
+
       - name: V2 backup contract - validate stage commit rollback recovery
         run: node scripts/v2-backup-transaction-smoke.mjs
 
