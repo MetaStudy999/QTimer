@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 
 const ROOT = process.cwd();
-const V2_ROOT = path.join(ROOT, "src", "v2");
 
 function walk(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -18,6 +17,12 @@ function walk(dir) {
 
 function rel(file) {
   return path.relative(ROOT, file).replaceAll(path.sep, "/");
+}
+
+function codeWithoutComments(source) {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
 }
 
 function count(pattern, text) {
@@ -39,7 +44,7 @@ const debtPatterns = {
 
 const legacyDebt = Object.fromEntries(Object.keys(debtPatterns).map(key => [key, 0]));
 for (const file of legacyFiles) {
-  const source = fs.readFileSync(file, "utf8");
+  const source = codeWithoutComments(fs.readFileSync(file, "utf8"));
   for (const [key, pattern] of Object.entries(debtPatterns)) legacyDebt[key] += count(pattern, source);
 }
 
@@ -50,7 +55,7 @@ function forbid(file, source, pattern, message) {
 }
 
 for (const file of v2Files) {
-  const source = fs.readFileSync(file, "utf8");
+  const source = codeWithoutComments(fs.readFileSync(file, "utf8"));
   const relative = rel(file);
 
   forbid(file, source, /\.innerHTML\s*=/g, "V2 source must not write innerHTML directly");
