@@ -20,7 +20,8 @@ export const V2_STORAGE_KEYS = Object.freeze({
   transforms: "qtimer.v2.transforms",
   notes: "qtimer.v2.notes",
   importStaging: "qtimer.v2.import-staging",
-  preImportSnapshot: "qtimer.v2.preimport-snapshot"
+  preImportSnapshot: "qtimer.v2.preimport-snapshot",
+  migrationReport: "qtimer.v2.migration-report"
 });
 
 const stateValidator = objectValidator({ requiredArrays: ["attempts"], requiredObjects: ["overrides", "flags"] });
@@ -63,7 +64,6 @@ export function createLegacyStorageRegistry() {
       validate: genericObjectValidator
     })
     .register({
-      // This module is intentionally explicit: current data-portability.js did not include it.
       id: "formats",
       storageKey: LEGACY_STORAGE_KEYS.formats,
       schemaVersion: 1,

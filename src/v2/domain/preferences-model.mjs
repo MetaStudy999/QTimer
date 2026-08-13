@@ -1,5 +1,5 @@
 // QTimer V2 Preferences V4.
-// One canonical presentation/preferences model. Legacy Settings v1/v2/v3 become migrations only.
+// One canonical presentation/preferences model. Legacy Settings v1/v2/v3 and Focus Quick Settings become migrations only.
 
 export const PREFERENCES_SCHEMA_VERSION = 4;
 export const SCALE_STEPS = Object.freeze([80, 85, 90, 95, 100, 105, 110, 115, 120, 125]);
@@ -23,6 +23,7 @@ export const ANSWER_THEMES = Object.freeze([
 const FONTS = new Set(["default", "gothic", "serif", "mono"]);
 const SIZES = new Set(["default", "16", "18", "20", "22", "24", "28", "32"]);
 const SCOPES = new Set(["all", "keyword"]);
+const HIGHLIGHT_MODES = new Set(["auto", "custom"]);
 const LEGACY_STYLES = new Set(["normal", "all-bold", "keyword-bold", "all-highlight", "keyword-highlight", "mark"]);
 
 function clone(value) {
@@ -79,6 +80,20 @@ function normalizePresentation(rawInput, kind, fallbackInput = {}) {
   return normalized;
 }
 
+function normalizeKeywordPresentation(rawInput, fallbackInput = {}) {
+  const raw = object(rawInput);
+  const fallback = object(fallbackInput);
+  return {
+    inheritQuestionFont: raw.inheritQuestionFont == null ? fallback.inheritQuestionFont !== false : raw.inheritQuestionFont !== false,
+    fontFamily: FONTS.has(raw.fontFamily) ? raw.fontFamily : (FONTS.has(fallback.fontFamily) ? fallback.fontFamily : "default"),
+    fontSize: SIZES.has(String(raw.fontSize)) ? String(raw.fontSize) : (SIZES.has(String(fallback.fontSize)) ? String(fallback.fontSize) : "default"),
+    fontColor: hex(raw.fontColor, hex(fallback.fontColor, "#ffffff")),
+    bold: bool(raw.bold, bool(fallback.bold, true)),
+    highlightMode: HIGHLIGHT_MODES.has(raw.highlightMode) ? raw.highlightMode : (HIGHLIGHT_MODES.has(fallback.highlightMode) ? fallback.highlightMode : "auto"),
+    highlightColor: hex(raw.highlightColor, hex(fallback.highlightColor, "#344054"))
+  };
+}
+
 function legacyStyle(styleInput, kind) {
   const style = LEGACY_STYLES.has(styleInput) ? styleInput : "normal";
   return {
@@ -97,12 +112,25 @@ function scaleFromLegacy(displayInput) {
   return 5;
 }
 
+function defaultKeywordPresentation() {
+  return {
+    inheritQuestionFont: true,
+    fontFamily: "default",
+    fontSize: "default",
+    fontColor: "#ffffff",
+    bold: true,
+    highlightMode: "auto",
+    highlightColor: "#344054"
+  };
+}
+
 export function defaultPreferencesV4() {
   return Object.freeze({
     schemaVersion: PREFERENCES_SCHEMA_VERSION,
     presentation: {
       question: normalizePresentation({ highlightColor: "#bfdbfe" }, "question"),
-      answer: normalizePresentation({ highlightColor: "#fecaca", answerMark: false, keywordRed: true }, "answer")
+      answer: normalizePresentation({ highlightColor: "#fecaca", answerMark: false, keywordRed: true }, "answer"),
+      keyword: defaultKeywordPresentation()
     },
     display: {
       scaleLevel: 5
@@ -118,7 +146,7 @@ export function defaultPreferencesV4() {
   });
 }
 
-function migrateLegacySettings(rawInput) {
+function migrateLegacySettings(rawInput, options = {}) {
   const raw = object(rawInput);
   const dap = object(raw.dapchigi);
   const base = defaultPreferencesV4();
@@ -126,12 +154,15 @@ function migrateLegacySettings(rawInput) {
   const answerFallback = { ...legacyStyle(dap.answerStyle, "answer"), keywordRed: dap.answerKeywordRed !== false };
   const questionRaw = Object.keys(object(dap.question)).length ? dap.question : questionFallback;
   const answerRaw = Object.keys(object(dap.answer)).length ? dap.answer : answerFallback;
+  const legacyFocus = object(options.focusPreferences);
+  const legacyKeyword = object(legacyFocus.keyword);
 
   return {
     schemaVersion: PREFERENCES_SCHEMA_VERSION,
     presentation: {
       question: normalizePresentation(questionRaw, "question", base.presentation.question),
-      answer: normalizePresentation(answerRaw, "answer", base.presentation.answer)
+      answer: normalizePresentation(answerRaw, "answer", base.presentation.answer),
+      keyword: normalizeKeywordPresentation(legacyKeyword, base.presentation.keyword)
     },
     display: { scaleLevel: scaleFromLegacy(raw.display) },
     accessibility: clone(base.accessibility),
@@ -152,7 +183,8 @@ export function normalizePreferencesV4(rawInput) {
     schemaVersion: PREFERENCES_SCHEMA_VERSION,
     presentation: {
       question: normalizePresentation(presentation.question, "question", defaults.presentation.question),
-      answer: normalizePresentation(presentation.answer, "answer", defaults.presentation.answer)
+      answer: normalizePresentation(presentation.answer, "answer", defaults.presentation.answer),
+      keyword: normalizeKeywordPresentation(presentation.keyword, defaults.presentation.keyword)
     },
     display: {
       scaleLevel: scaleLevel(display.scaleLevel, defaults.display.scaleLevel)
@@ -170,16 +202,24 @@ export function normalizePreferencesV4(rawInput) {
 
 /**
  * Accepts raw Settings v1/v2/v3 or already-canonical Preferences V4.
+ * `options.focusPreferences` accepts the legacy Focus Quick Settings payload.
  * No storage or renderer side effects occur here.
  */
-export function migratePreferencesToV4(rawInput) {
+export function migratePreferencesToV4(rawInput, options = {}) {
   const raw = object(rawInput);
   if (Number(raw.schemaVersion) === PREFERENCES_SCHEMA_VERSION) {
-    return normalizePreferencesV4(raw);
+    const canonical = normalizePreferencesV4(raw);
+    if (!options.focusPreferences) return canonical;
+    return Object.freeze({
+      ...clone(canonical),
+      presentation: {
+        ...clone(canonical.presentation),
+        keyword: normalizeKeywordPresentation(object(options.focusPreferences).keyword, canonical.presentation.keyword)
+      }
+    });
   }
 
-  // Current Settings v1/v2/v3 use `version`, not `schemaVersion`, and keep presentation under `dapchigi`.
-  return Object.freeze(migrateLegacySettings(raw));
+  return Object.freeze(migrateLegacySettings(raw, options));
 }
 
 export function preferencesV4ToLegacyV3(preferencesInput) {
@@ -192,6 +232,14 @@ export function preferencesV4ToLegacyV3(preferencesInput) {
     },
     display: { scaleLevel: prefs.display.scaleLevel },
     updatedAt: prefs.updatedAt
+  };
+}
+
+export function preferencesV4ToLegacyFocusV1(preferencesInput) {
+  const prefs = normalizePreferencesV4(preferencesInput);
+  return {
+    version: 1,
+    keyword: clone(prefs.presentation.keyword)
   };
 }
 

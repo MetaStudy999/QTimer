@@ -42,7 +42,7 @@ jobs:
       - name: V2 program contract - Format and Transform orchestration
         run: node scripts/v2-program-engine-smoke.mjs
 
-      - name: V2 preferences contract - Settings v1-v3 to Preferences V4
+      - name: V2 preferences contract - Settings v1-v3 plus Focus v1 to Preferences V4
         run: node scripts/v2-preferences-smoke.mjs
 
       - name: V2 application contract - command and event bus
@@ -57,8 +57,11 @@ jobs:
       - name: V2 migration contract - conservative Format and Program conversion
         run: node scripts/v2-legacy-migration-smoke.mjs
 
-      - name: V2 backup contract - validate stage commit rollback recovery
+      - name: V2 backup contract - validate stage commit rollback recovery and undo
         run: node scripts/v2-backup-transaction-smoke.mjs
+
+      - name: V2 browser storage runtime - shadow export import projection undo
+        run: node scripts/v2-browser-storage-runtime-smoke.mjs
 
       - name: V2 security contract - content escaping and URL policy
         run: node scripts/v2-security-smoke.mjs

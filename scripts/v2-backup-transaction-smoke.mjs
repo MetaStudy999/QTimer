@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { createLegacyStorageRegistry, LEGACY_STORAGE_KEYS } from "../src/v2/data/legacy-storage-manifest.mjs";
-import { prepareBackupImport, commitImportPlan, parseBackupText, recoverInterruptedImport } from "../src/v2/data/backup-transaction.mjs";
+import {
+  prepareBackupImport,
+  commitImportPlan,
+  parseBackupText,
+  recoverInterruptedImport,
+  restorePreImportSnapshot
+} from "../src/v2/data/backup-transaction.mjs";
 
 class MemoryStorage {
   constructor(entries = [], failOnKey = null) {
@@ -41,6 +47,12 @@ assert.equal(JSON.parse(storage.getItem(LEGACY_STORAGE_KEYS.formats)).formats[0]
 assert.equal(JSON.parse(storage.getItem(LEGACY_STORAGE_KEYS.state)).attempts[0].id, "new");
 assert.ok(storage.getItem("snapshot"));
 
+const explicitUndo = restorePreImportSnapshot(storage, { stagingKey: "staging", snapshotKey: "snapshot" });
+assert.equal(explicitUndo.restored, true);
+assert.equal(storage.getItem(LEGACY_STORAGE_KEYS.state), originalState);
+assert.equal(storage.getItem(LEGACY_STORAGE_KEYS.formats), null);
+assert.ok(storage.getItem("snapshot"), "snapshot remains available until explicitly cleared");
+
 // A forced failure after earlier module writes must restore every touched key.
 const failingStorage = new MemoryStorage([
   [LEGACY_STORAGE_KEYS.state, originalState],
@@ -66,12 +78,12 @@ assert.equal(interrupted.getItem(LEGACY_STORAGE_KEYS.state), originalState);
 assert.equal(interrupted.getItem(LEGACY_STORAGE_KEYS.formats), null);
 assert.equal(interrupted.getItem("staging"), null);
 
-// Size limit is enforced before JSON.parse / registry processing.
 assert.throws(() => parseBackupText("x".repeat(101), { maxBytes: 100 }), /too large/);
 
 console.log("# QTimer V2 backup transaction smoke");
 console.log("PASS: size/structure checks run before import planning");
 console.log("PASS: all modules are validated before persistence");
 console.log("PASS: successful commit keeps pre-import snapshot");
+console.log("PASS: explicit undo restores the last pre-import snapshot");
 console.log("PASS: partial write failure rolls back all touched module keys");
 console.log("PASS: interrupted import can recover from staging + snapshot");
