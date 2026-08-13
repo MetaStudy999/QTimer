@@ -27,5 +27,11 @@ jobs:
       - name: V2 domain contract - content zones and Cloze Transform
         run: node scripts/v2-domain-smoke.mjs
 
+      - name: V2 program contract - Format and Transform orchestration
+        run: node scripts/v2-program-engine-smoke.mjs
+
       - name: V2 data contract - storage registry and backup inventory
         run: node scripts/v2-storage-registry-smoke.mjs
+
+      - name: V2 backup contract - validate stage commit rollback recovery
+        run: node scripts/v2-backup-transaction-smoke.mjs
