@@ -36,6 +36,9 @@ jobs:
       - name: V2 program contract - Format and Transform orchestration
         run: node scripts/v2-program-engine-smoke.mjs
 
+      - name: V2 application contract - command and event bus
+        run: node scripts/v2-application-bus-smoke.mjs
+
       - name: V2 data contract - storage registry and backup inventory
         run: node scripts/v2-storage-registry-smoke.mjs
 
