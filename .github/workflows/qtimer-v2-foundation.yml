@@ -30,6 +30,9 @@ jobs:
       - name: V2 domain contract - content zones and Cloze Transform
         run: node scripts/v2-domain-smoke.mjs
 
+      - name: V2 authoring contract - selection-first Cloze targets
+        run: node scripts/v2-cloze-authoring-smoke.mjs
+
       - name: V2 view contract - Format plus Transform to Study View
         run: node scripts/v2-study-view-smoke.mjs
 
