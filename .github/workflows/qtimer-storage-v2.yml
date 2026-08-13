@@ -1,0 +1,61 @@
+name: QTimer Storage V2 QA
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - "refactor/storage-v2"
+
+permissions:
+  contents: read
+
+jobs:
+  storage-v2-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Storage V2 pure runtime contract
+        run: node scripts/v2-browser-storage-runtime-smoke.mjs
+
+      - name: Install browser smoke dependency
+        run: npm install --no-save --no-package-lock puppeteer-core@24.16.0
+
+      - name: Start QTimer static server
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8080 --bind 127.0.0.1 >/tmp/qtimer-storage-v2-http.log 2>&1 &
+          echo $! >/tmp/qtimer-storage-v2-http.pid
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8080/ >/dev/null; then
+              echo 'QTimer HTTP server ready.'
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/qtimer-storage-v2-http.log
+          exit 1
+
+      - name: Browser smoke - Storage V2 portability UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || true)"
+          [[ -n "$CHROME_BIN" ]] || CHROME_BIN="$(command -v google-chrome-stable || true)"
+          [[ -n "$CHROME_BIN" ]] || CHROME_BIN="$(command -v chromium || true)"
+          [[ -n "$CHROME_BIN" ]] || CHROME_BIN="$(command -v chromium-browser || true)"
+          if [[ -z "$CHROME_BIN" ]]; then
+            echo 'Chrome/Chromium executable not found on runner.' >&2
+            exit 1
+          fi
+          CHROME_BIN="$CHROME_BIN" QTIMER_URL="http://127.0.0.1:8080" node scripts/storage-v2-browser-smoke.mjs
