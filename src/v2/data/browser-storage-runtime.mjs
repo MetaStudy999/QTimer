@@ -20,6 +20,10 @@ import {
   preferencesV4ToLegacyFocusV1
 } from "../domain/preferences-model.mjs";
 import { migrateLegacyFormatsV1, migrateLegacyProgramsV1 } from "./legacy-user-data-migration.mjs";
+import {
+  buildLegacyV1CompatibilitySnapshot,
+  parseLegacyV1CompatibilitySnapshot
+} from "./legacy-compatibility-snapshot.mjs";
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -61,6 +65,15 @@ function moduleEnvelope(registry, id, data) {
   };
 }
 
+function extractV2LegacyCompatibility(payload) {
+  if (payload?.compatibility == null) return null;
+  if (!payload.compatibility || typeof payload.compatibility !== "object" || Array.isArray(payload.compatibility)) {
+    throw new TypeError("Backup compatibility section must be an object");
+  }
+  if (payload.compatibility.legacyV1 == null) return null;
+  return parseLegacyV1CompatibilitySnapshot(payload.compatibility.legacyV1);
+}
+
 function canonicalBackupFromLegacyV1(payload, registry) {
   if (!payload || typeof payload !== "object" || payload.format !== "qtimer-backup" || Number(payload.version) !== 1) {
     throw new TypeError("Unsupported legacy QTimer backup envelope");
@@ -90,17 +103,14 @@ function canonicalBackupFromLegacyV1(payload, registry) {
       modules
     },
     migration,
-    legacyCompatibility: {
-      state: clone(payload.state),
-      settings: payload.settings ? clone(payload.settings) : null,
-      focusSettings: payload.focusReadingSettings ? clone(payload.focusReadingSettings) : null,
-      formats: payload.dapchigiFormats ? clone(payload.dapchigiFormats) : null,
-      programs: payload.dapchigiPrograms ? clone(payload.dapchigiPrograms) : null
-    }
+    legacyCompatibility: buildLegacyV1CompatibilitySnapshot({
+      formats: payload.dapchigiFormats || null,
+      programs: payload.dapchigiPrograms || null
+    })
   };
 }
 
-function compatibilityWritesForPlan(plan, sourceVersion, legacyCompatibility = {}) {
+function compatibilityWritesForPlan(plan, legacyCompatibility = null) {
   const writes = [];
   const canonicalIds = new Set(plan.writes.map(write => write.id));
 
@@ -110,9 +120,7 @@ function compatibilityWritesForPlan(plan, sourceVersion, legacyCompatibility = {
       id: "legacyStateProjection",
       storageKey: LEGACY_STORAGE_KEYS.state,
       schemaVersion: 1,
-      data: sourceVersion === 1 && legacyCompatibility.state
-        ? clone(legacyCompatibility.state)
-        : projectStateV2ToLegacy(stateWrite.data)
+      data: projectStateV2ToLegacy(stateWrite.data)
     });
   }
 
@@ -122,32 +130,28 @@ function compatibilityWritesForPlan(plan, sourceVersion, legacyCompatibility = {
       id: "legacyPreferencesProjection",
       storageKey: LEGACY_STORAGE_KEYS.preferences,
       schemaVersion: 3,
-      data: sourceVersion === 1 && legacyCompatibility.settings
-        ? clone(legacyCompatibility.settings)
-        : preferencesV4ToLegacyV3(preferencesWrite.data)
+      data: preferencesV4ToLegacyV3(preferencesWrite.data)
     });
     writes.push({
       id: "legacyFocusPreferencesProjection",
       storageKey: LEGACY_STORAGE_KEYS.focusPreferences,
       schemaVersion: 1,
-      data: sourceVersion === 1 && legacyCompatibility.focusSettings
-        ? clone(legacyCompatibility.focusSettings)
-        : preferencesV4ToLegacyFocusV1(preferencesWrite.data)
+      data: preferencesV4ToLegacyFocusV1(preferencesWrite.data)
     });
   }
 
-  if (sourceVersion === 1 && canonicalIds.has("formats") && legacyCompatibility.formats) {
+  if (canonicalIds.has("formats") && legacyCompatibility?.formats) {
     writes.push({
-      id: "legacyFormatsProjection",
+      id: "legacyFormatsCompatibility",
       storageKey: LEGACY_STORAGE_KEYS.formats,
       schemaVersion: 1,
       data: clone(legacyCompatibility.formats)
     });
   }
 
-  if (sourceVersion === 1 && canonicalIds.has("programs") && legacyCompatibility.programs) {
+  if (canonicalIds.has("programs") && legacyCompatibility?.programs) {
     writes.push({
-      id: "legacyProgramsProjection",
+      id: "legacyProgramsCompatibility",
       storageKey: LEGACY_STORAGE_KEYS.programs,
       schemaVersion: 1,
       data: clone(legacyCompatibility.programs)
@@ -157,13 +161,13 @@ function compatibilityWritesForPlan(plan, sourceVersion, legacyCompatibility = {
   return writes;
 }
 
-function deferredLegacyRuntimeModules(plan, sourceVersion, legacyCompatibility = {}) {
+function deferredLegacyRuntimeModules(plan, legacyCompatibility = null) {
   const deferred = [];
   const ids = new Set(plan.writes.map(write => write.id));
   if (ids.has("transforms")) deferred.push("transforms");
   if (ids.has("notes")) deferred.push("notes");
-  if (ids.has("formats") && !(sourceVersion === 1 && legacyCompatibility.formats)) deferred.push("formats");
-  if (ids.has("programs") && !(sourceVersion === 1 && legacyCompatibility.programs)) deferred.push("programs");
+  if (ids.has("formats") && !legacyCompatibility?.formats) deferred.push("formats");
+  if (ids.has("programs") && !legacyCompatibility?.programs) deferred.push("programs");
   return deferred;
 }
 
@@ -208,7 +212,13 @@ export function createBrowserStorageRuntime({ storage, now = () => new Date().to
       appVersion,
       questionBankVersion
     });
-    return Object.freeze({ payload, migrationReport: report });
+    const legacyCompatibility = buildLegacyV1CompatibilitySnapshot(legacySources);
+    if (legacyCompatibility) {
+      payload.compatibility = {
+        legacyV1: clone(legacyCompatibility)
+      };
+    }
+    return Object.freeze({ payload: Object.freeze(payload), migrationReport: report });
   }
 
   function prepareImportText(text) {
@@ -216,7 +226,7 @@ export function createBrowserStorageRuntime({ storage, now = () => new Date().to
     let sourceVersion = Number(parsed.payload?.version);
     let canonicalPayload = parsed.payload;
     let migration = { warnings: [], requiresUserReview: false };
-    let legacyCompatibility = {};
+    let legacyCompatibility = null;
 
     if (sourceVersion === 1) {
       const converted = canonicalBackupFromLegacyV1(parsed.payload, registry);
@@ -224,19 +234,21 @@ export function createBrowserStorageRuntime({ storage, now = () => new Date().to
       migration = converted.migration;
       legacyCompatibility = converted.legacyCompatibility;
       sourceVersion = 1;
-    } else if (sourceVersion !== 2) {
+    } else if (sourceVersion === 2) {
+      legacyCompatibility = extractV2LegacyCompatibility(parsed.payload);
+    } else {
       throw new TypeError(`Unsupported QTimer backup version: ${sourceVersion || "unknown"}`);
     }
 
     const canonicalPlan = registry.prepareImport(canonicalPayload, { rejectUnknown: true, maxModules: parsed.limits.maxModules });
-    const compatibilityWrites = compatibilityWritesForPlan(canonicalPlan, sourceVersion, legacyCompatibility);
+    const compatibilityWrites = compatibilityWritesForPlan(canonicalPlan, legacyCompatibility);
     const combinedPlan = Object.freeze({
       ...canonicalPlan,
       writes: Object.freeze([...canonicalPlan.writes.map(clone), ...compatibilityWrites.map(clone)])
     });
     const stateWrite = canonicalPlan.writes.find(write => write.id === "state");
     const attemptCount = Array.isArray(stateWrite?.data?.attempts) ? stateWrite.data.attempts.length : null;
-    const deferredModules = deferredLegacyRuntimeModules(canonicalPlan, sourceVersion, legacyCompatibility);
+    const deferredModules = deferredLegacyRuntimeModules(canonicalPlan, legacyCompatibility);
 
     return Object.freeze({
       sourceVersion,
@@ -247,6 +259,7 @@ export function createBrowserStorageRuntime({ storage, now = () => new Date().to
       canonicalModuleIds: canonicalPlan.writes.map(write => write.id),
       attemptCount,
       deferredModules,
+      hasLegacyCompatibility: Boolean(legacyCompatibility),
       warnings: clone(migration.warnings || []),
       requiresUserReview: Boolean(migration.requiresUserReview)
     });
@@ -264,6 +277,7 @@ export function createBrowserStorageRuntime({ storage, now = () => new Date().to
       source: `backup-v${prepared.sourceVersion}`,
       importedModuleIds: clone(prepared.canonicalModuleIds),
       deferredModules: clone(prepared.deferredModules),
+      hasLegacyCompatibility: Boolean(prepared.hasLegacyCompatibility),
       warnings: clone(prepared.warnings),
       requiresUserReview: prepared.requiresUserReview
     }));
@@ -272,6 +286,7 @@ export function createBrowserStorageRuntime({ storage, now = () => new Date().to
       sourceVersion: prepared.sourceVersion,
       canonicalModuleIds: clone(prepared.canonicalModuleIds),
       deferredModules: clone(prepared.deferredModules),
+      hasLegacyCompatibility: Boolean(prepared.hasLegacyCompatibility),
       warnings: clone(prepared.warnings),
       requiresUserReview: prepared.requiresUserReview
     });
