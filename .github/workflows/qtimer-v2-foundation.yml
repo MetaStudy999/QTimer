@@ -1,0 +1,64 @@
+name: QTimer V2 Foundation QA
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - "refactor/**"
+
+permissions:
+  contents: read
+
+jobs:
+  v2-foundation-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: V2 architecture gate - dependency and browser-boundary rules
+        run: node scripts/v2-architecture-audit.mjs
+
+      - name: V2 domain contract - content zones and Cloze Transform
+        run: node scripts/v2-domain-smoke.mjs
+
+      - name: V2 authoring contract - selection-first Cloze targets
+        run: node scripts/v2-cloze-authoring-smoke.mjs
+
+      - name: V2 view contract - Format plus Transform to Study View
+        run: node scripts/v2-study-view-smoke.mjs
+
+      - name: V2 Dapchigi contract - round stop and A+X compression
+        run: node scripts/v2-dapchigi-engine-smoke.mjs
+
+      - name: V2 program contract - Format and Transform orchestration
+        run: node scripts/v2-program-engine-smoke.mjs
+
+      - name: V2 preferences contract - Settings v1-v3 to Preferences V4
+        run: node scripts/v2-preferences-smoke.mjs
+
+      - name: V2 application contract - command and event bus
+        run: node scripts/v2-application-bus-smoke.mjs
+
+      - name: V2 legacy data contract - current storage inventory
+        run: node scripts/v2-storage-registry-smoke.mjs
+
+      - name: V2 canonical data contract - all persistent modules and backup coverage
+        run: node scripts/v2-canonical-storage-smoke.mjs
+
+      - name: V2 migration contract - conservative Format and Program conversion
+        run: node scripts/v2-legacy-migration-smoke.mjs
+
+      - name: V2 backup contract - validate stage commit rollback recovery
+        run: node scripts/v2-backup-transaction-smoke.mjs
+
+      - name: V2 security contract - content escaping and URL policy
+        run: node scripts/v2-security-smoke.mjs
