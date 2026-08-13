@@ -1,170 +1,162 @@
-// QTimer v0.1 local learning-data backup / restore.
+// QTimer Storage V2 data portability bridge.
+// The current V1 study runtime remains live; export/import uses canonical V2 modules transactionally.
 (function(){
-  const SNAPSHOT_KEY = `${STORAGE_KEY}-preimport`;
-  const SETTINGS_KEY = "qtimer-settings-v2";
-  const LEGACY_SETTINGS_KEY = "qtimer-settings-v1";
-  const SETTINGS_SNAPSHOT_KEY = `${SETTINGS_KEY}-preimport`;
-  const FOCUS_SETTINGS_KEY = "qtimer-focus-quick-settings-v1";
-  const FOCUS_SETTINGS_SNAPSHOT_KEY = `${FOCUS_SETTINGS_KEY}-preimport`;
-  const DAP_PROGRAMS_KEY = "qtimer-dapchigi-programs-v1";
-  const DAP_PROGRAMS_SNAPSHOT_KEY = `${DAP_PROGRAMS_KEY}-preimport`;
+  const LEGACY_SETTINGS_KEY = "qtimer-settings-v2";
+  const LEGACY_SETTINGS_V1_KEY = "qtimer-settings-v1";
+  const LEGACY_FOCUS_KEY = "qtimer-focus-quick-settings-v1";
+  const LEGACY_PROGRAMS_KEY = "qtimer-dapchigi-programs-v1";
+  const LEGACY_FORMATS_KEY = "qtimer-dapchigi-formats-v1";
 
-  function currentAttemptCount(){
-    return Array.isArray(state?.attempts) ? state.attempts.length : 0;
+  // Pre-Storage-V2 fallback snapshots remain readable so an old recovery path is never stranded.
+  const OLD_SNAPSHOTS = Object.freeze({
+    state: `${STORAGE_KEY}-preimport`,
+    settings: `${LEGACY_SETTINGS_KEY}-preimport`,
+    focus: `${LEGACY_FOCUS_KEY}-preimport`,
+    programs: `${LEGACY_PROGRAMS_KEY}-preimport`
+  });
+
+  let runtimePromise = null;
+
+  function clone(value){ return value == null ? value : JSON.parse(JSON.stringify(value)); }
+  function validObject(value){ return value && typeof value === "object" && !Array.isArray(value); }
+  function readJson(key){
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return validObject(parsed) ? parsed : null;
+    } catch { return null; }
   }
 
-  function validObject(value){
-    return value && typeof value === "object" && !Array.isArray(value);
-  }
-
-  function readStoredSettings(){
-    for (const key of [SETTINGS_KEY, LEGACY_SETTINGS_KEY]) {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(key));
-        if (validObject(parsed)) return parsed;
-      } catch {}
+  function storageV2(){
+    if (!runtimePromise) {
+      runtimePromise = import("./src/v2/data/browser-storage-runtime.mjs")
+        .then(module => module.createBrowserStorageRuntime({ storage: localStorage }));
     }
-    return null;
-  }
-
-  function readStoredFocusSettings(){
-    try {
-      const parsed = JSON.parse(localStorage.getItem(FOCUS_SETTINGS_KEY));
-      if (validObject(parsed)) return parsed;
-    } catch {}
-    return null;
-  }
-
-  function readStoredDapPrograms(){
-    try {
-      const parsed = JSON.parse(localStorage.getItem(DAP_PROGRAMS_KEY));
-      if (validObject(parsed)) return parsed;
-    } catch {}
-    return null;
+    return runtimePromise;
   }
 
   function currentSettings(){
     if (globalThis.QTIMER_SETTINGS?.get) return globalThis.QTIMER_SETTINGS.get();
-    return readStoredSettings();
+    return readJson(LEGACY_SETTINGS_KEY) || readJson(LEGACY_SETTINGS_V1_KEY);
   }
 
   function currentFocusSettings(){
     if (globalThis.QTIMER_FOCUS_QUICK_SETTINGS?.get) return globalThis.QTIMER_FOCUS_QUICK_SETTINGS.get();
-    return readStoredFocusSettings();
+    return readJson(LEGACY_FOCUS_KEY);
   }
 
   function currentDapPrograms(){
     if (globalThis.QTIMER_DAP_PROGRAMS?.get) return globalThis.QTIMER_DAP_PROGRAMS.get();
-    return readStoredDapPrograms();
+    return readJson(LEGACY_PROGRAMS_KEY);
   }
 
-  function exportPayload(){
+  function currentDapFormats(){
+    if (globalThis.QTIMER_DAP_FORMATS?.get) return globalThis.QTIMER_DAP_FORMATS.get();
+    return readJson(LEGACY_FORMATS_KEY);
+  }
+
+  function liveLegacySources(){
     return {
-      format: "qtimer-backup",
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      storageKey: STORAGE_KEY,
-      questionBankVersion: state.questionBankVersion || (typeof buildQuestionBankVersion === "function" ? buildQuestionBankVersion() : null),
-      questionCount: QUESTIONS.length,
-      state: JSON.parse(JSON.stringify(state)),
+      state: clone(state),
       settings: currentSettings(),
-      focusReadingSettings: currentFocusSettings(),
-      dapchigiPrograms: currentDapPrograms()
+      focusSettings: currentFocusSettings(),
+      programs: currentDapPrograms(),
+      formats: currentDapFormats()
     };
   }
 
-  function downloadJson(payload, prefix="qtimer-backup"){
+  function questionBankVersion(){
+    return state.questionBankVersion || (typeof buildQuestionBankVersion === "function" ? buildQuestionBankVersion() : null);
+  }
+
+  function downloadJson(payload, prefix="qtimer-backup-v2"){
     const stamp = new Date().toISOString().replace(/[:.]/g,"-");
     const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${prefix}-${stamp}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${prefix}-${stamp}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
     URL.revokeObjectURL(url);
   }
 
-  function exportLearningData(){
-    downloadJson(exportPayload());
+  async function exportLearningData(){
+    const runtime = await storageV2();
+    const result = runtime.buildBackup({
+      legacySources: liveLegacySources(),
+      questionBankVersion: questionBankVersion(),
+      appVersion: "qtimer-storage-v2-bridge"
+    });
+    downloadJson(result.payload);
   }
 
-  function validateBackup(payload){
-    if (!validObject(payload) || payload.format !== "qtimer-backup" || payload.version !== 1) {
-      throw new Error("QTimer 백업 파일 형식이 아닙니다.");
-    }
-    if (!validObject(payload.state) || !Array.isArray(payload.state.attempts)) {
-      throw new Error("학습 기록 데이터가 올바르지 않습니다.");
-    }
-    if (!validObject(payload.state.overrides || {}) || !validObject(payload.state.flags || {})) {
-      throw new Error("정답 검증/플래그 데이터가 올바르지 않습니다.");
-    }
-    if (payload.settings != null && !validObject(payload.settings)) {
-      throw new Error("환경설정 데이터가 올바르지 않습니다.");
-    }
-    if (payload.focusReadingSettings != null && !validObject(payload.focusReadingSettings)) {
-      throw new Error("집중모드 빠른 표시 설정 데이터가 올바르지 않습니다.");
-    }
-    if (payload.dapchigiPrograms != null && !validObject(payload.dapchigiPrograms)) {
-      throw new Error("답치기 프로그램 데이터가 올바르지 않습니다.");
-    }
-    return payload;
+  function importSummary(prepared){
+    const modules = prepared.canonicalModuleIds.join(", ") || "없음";
+    const attempts = prepared.attemptCount == null ? "포함 안 됨" : `${prepared.attemptCount}회`;
+    const deferred = prepared.deferredModules.length ? prepared.deferredModules.join(", ") : "없음";
+    const warnings = prepared.warnings.length;
+    return [
+      `QTimer 백업 v${prepared.sourceVersion} → Storage V2로 복원합니다.`,
+      "",
+      `학습 기록: ${attempts}`,
+      `복원 모듈: ${modules}`,
+      `현재 V1 화면에서 활성화가 보류되는 V2 전용 모듈: ${deferred}`,
+      `마이그레이션 검토 항목: ${warnings}건`,
+      "",
+      "모든 데이터는 먼저 검증한 뒤 한 번의 트랜잭션으로 교체됩니다.",
+      "가져오기 직전 상태는 ‘복원취소’용 스냅샷으로 보관됩니다.",
+      "계속하시겠습니까?"
+    ].join("\n");
   }
 
   async function importLearningData(file){
+    const runtime = await storageV2();
     const text = await file.text();
-    const payload = validateBackup(JSON.parse(text));
-    const incomingAttempts = payload.state.attempts.length;
-    const currentAttempts = currentAttemptCount();
-    const hasSettings = validObject(payload.settings);
-    const hasFocusSettings = validObject(payload.focusReadingSettings);
-    const hasDapPrograms = validObject(payload.dapchigiPrograms);
-    const ok = window.confirm(
-      `QTimer 학습 데이터를 복원합니다.\n\n현재 기록: ${currentAttempts}회\n가져올 기록: ${incomingAttempts}회\n환경설정 포함: ${hasSettings ? "예" : "아니오"}\n집중모드 표시 설정 포함: ${hasFocusSettings ? "예" : "아니오"}\n답치기 프로그램 포함: ${hasDapPrograms ? "예" : "아니오"}\n\n현재 상태는 브라우저 내부 임시 백업으로 1회 보관한 뒤 교체됩니다. 계속하시겠습니까?`
-    );
-    if (!ok) return;
+    const prepared = runtime.prepareImportText(text);
+    if (!window.confirm(importSummary(prepared))) return;
 
-    const currentSnapshot = localStorage.getItem(STORAGE_KEY);
-    if (currentSnapshot) localStorage.setItem(SNAPSHOT_KEY, currentSnapshot);
-    const currentSettingsSnapshot = localStorage.getItem(SETTINGS_KEY) || localStorage.getItem(LEGACY_SETTINGS_KEY);
-    if (currentSettingsSnapshot) localStorage.setItem(SETTINGS_SNAPSHOT_KEY, currentSettingsSnapshot);
-    const currentFocusSettingsSnapshot = localStorage.getItem(FOCUS_SETTINGS_KEY);
-    if (currentFocusSettingsSnapshot) localStorage.setItem(FOCUS_SETTINGS_SNAPSHOT_KEY, currentFocusSettingsSnapshot);
-    const currentDapProgramsSnapshot = localStorage.getItem(DAP_PROGRAMS_KEY);
-    if (currentDapProgramsSnapshot) localStorage.setItem(DAP_PROGRAMS_SNAPSHOT_KEY, currentDapProgramsSnapshot);
-
-    const imported = {...defaultState, ...payload.state};
-    imported.attempts = Array.isArray(payload.state.attempts) ? payload.state.attempts : [];
-    imported.overrides = validObject(payload.state.overrides) ? payload.state.overrides : {};
-    imported.flags = validObject(payload.state.flags) ? payload.state.flags : {};
-    imported.currentRoundIds = QUESTIONS.map(q=>q.id);
-    imported.currentIndex = Math.max(0, Math.min(Number(imported.currentIndex)||0, Math.max(0, QUESTIONS.length-1)));
-    if (typeof buildQuestionBankVersion === "function") imported.questionBankVersion = buildQuestionBankVersion();
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(imported));
-    if (hasSettings) localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload.settings));
-    if (hasFocusSettings) localStorage.setItem(FOCUS_SETTINGS_KEY, JSON.stringify(payload.focusReadingSettings));
-    if (hasDapPrograms) localStorage.setItem(DAP_PROGRAMS_KEY, JSON.stringify(payload.dapchigiPrograms));
-    window.alert(`복원 완료: ${incomingAttempts}회 학습 기록${hasSettings ? ", 환경설정" : ""}${hasFocusSettings ? ", 집중모드 표시 설정" : ""}${hasDapPrograms ? ", 답치기 프로그램" : ""}을 가져왔습니다. 화면을 다시 불러옵니다.`);
+    const result = runtime.commitPreparedImport(prepared);
+    const deferredNote = result.deferredModules.length
+      ? `\n\nV2 전용 데이터(${result.deferredModules.join(", ")})는 안전하게 복원됐지만 현재 V1 화면에는 아직 연결하지 않습니다. 해당 V2 화면이 적용되면 그대로 사용됩니다.`
+      : "";
+    const reviewNote = result.requiresUserReview
+      ? `\n\n기존 빈칸/mark 데이터 중 정확한 위치 정보가 없던 항목 ${result.warnings.length}건은 자동으로 추측하지 않고 ‘재지정 필요’ 상태로 보존했습니다.`
+      : "";
+    window.alert(`Storage V2 복원 완료. 화면을 다시 불러옵니다.${deferredNote}${reviewNote}`);
     location.reload();
   }
 
-  function restorePreImportSnapshot(){
-    const snapshot = localStorage.getItem(SNAPSHOT_KEY);
-    if (!snapshot) {
-      window.alert("가져오기 직전 임시 백업이 없습니다.");
+  function restoreOldSnapshotFallback(){
+    const stateSnapshot = localStorage.getItem(OLD_SNAPSHOTS.state);
+    if (!stateSnapshot) return false;
+    localStorage.setItem(STORAGE_KEY, stateSnapshot);
+    const settings = localStorage.getItem(OLD_SNAPSHOTS.settings);
+    if (settings) localStorage.setItem(LEGACY_SETTINGS_KEY, settings);
+    const focus = localStorage.getItem(OLD_SNAPSHOTS.focus);
+    if (focus) localStorage.setItem(LEGACY_FOCUS_KEY, focus);
+    const programs = localStorage.getItem(OLD_SNAPSHOTS.programs);
+    if (programs) localStorage.setItem(LEGACY_PROGRAMS_KEY, programs);
+    return true;
+  }
+
+  async function restorePreImportSnapshot(){
+    const runtime = await storageV2();
+    if (!window.confirm("가장 최근 데이터 가져오기 직전 상태로 되돌리시겠습니까?")) return;
+    const result = runtime.undoLastImport();
+    if (result.restored) {
+      window.alert(`복원취소 완료: ${result.restoredKeys}개 저장 항목을 가져오기 직전 상태로 되돌렸습니다.`);
+      location.reload();
       return;
     }
-    if (!window.confirm("가장 최근 데이터 가져오기 직전 상태로 되돌리시겠습니까? 학습기록과 함께 저장된 환경설정·집중모드 표시 설정·답치기 프로그램도 복원합니다.")) return;
-    localStorage.setItem(STORAGE_KEY, snapshot);
-    const settingsSnapshot = localStorage.getItem(SETTINGS_SNAPSHOT_KEY);
-    if (settingsSnapshot) localStorage.setItem(SETTINGS_KEY, settingsSnapshot);
-    const focusSettingsSnapshot = localStorage.getItem(FOCUS_SETTINGS_SNAPSHOT_KEY);
-    if (focusSettingsSnapshot) localStorage.setItem(FOCUS_SETTINGS_KEY, focusSettingsSnapshot);
-    const dapProgramsSnapshot = localStorage.getItem(DAP_PROGRAMS_SNAPSHOT_KEY);
-    if (dapProgramsSnapshot) localStorage.setItem(DAP_PROGRAMS_KEY, dapProgramsSnapshot);
-    location.reload();
+    if (restoreOldSnapshotFallback()) {
+      window.alert("이전 버전에서 저장한 가져오기 직전 상태를 복원했습니다.");
+      location.reload();
+      return;
+    }
+    window.alert("가져오기 직전 임시 백업이 없습니다.");
   }
 
   function installDataButtons(){
@@ -180,21 +172,27 @@
     exportBtn.id = "qtimerExportBtn";
     exportBtn.type = "button";
     exportBtn.textContent = "백업";
-    exportBtn.title = "현재 풀이·취약·정답검증 기록과 환경설정·집중모드 표시 설정·답치기 프로그램을 JSON 파일로 저장";
-    exportBtn.addEventListener("click", exportLearningData);
+    exportBtn.title = "학습기록·O/A/X·환경설정·양식·변환·프로그램·메모를 QTimer Storage V2 JSON으로 저장";
+    exportBtn.addEventListener("click", async () => {
+      try { await exportLearningData(); }
+      catch (error) { window.alert(`백업 실패: ${error.message || error}`); }
+    });
 
     const importBtn = document.createElement("button");
     importBtn.id = "qtimerImportBtn";
     importBtn.type = "button";
     importBtn.textContent = "복원";
-    importBtn.title = "다른 PC 또는 브라우저에서 내보낸 QTimer JSON 백업 복원";
+    importBtn.title = "QTimer v1/v2 JSON 백업을 검증 후 트랜잭션으로 복원";
 
     const undoImportBtn = document.createElement("button");
     undoImportBtn.id = "qtimerUndoImportBtn";
     undoImportBtn.type = "button";
     undoImportBtn.textContent = "복원취소";
-    undoImportBtn.title = "가장 최근 가져오기 직전 학습기록·환경설정·집중모드 표시 설정·답치기 프로그램 상태로 되돌리기";
-    undoImportBtn.addEventListener("click", restorePreImportSnapshot);
+    undoImportBtn.title = "가장 최근 가져오기 직전 상태로 되돌리기";
+    undoImportBtn.addEventListener("click", async () => {
+      try { await restorePreImportSnapshot(); }
+      catch (error) { window.alert(`복원취소 실패: ${error.message || error}`); }
+    });
 
     const input = document.createElement("input");
     input.type = "file";
@@ -216,4 +214,12 @@
   }
 
   installDataButtons();
+
+  // If the browser was closed during a V2 import, roll back before the user resumes studying.
+  storageV2().then(runtime => {
+    const recovery = runtime.recoverInterruptedImport();
+    if (!recovery.recovered) return;
+    window.alert(`중단된 데이터 복원을 감지하여 ${recovery.restoredKeys}개 저장 항목을 안전하게 롤백했습니다. 화면을 다시 불러옵니다.`);
+    location.reload();
+  }).catch(error => console.error("[QTimer] Storage V2 recovery check failed", error));
 })();
